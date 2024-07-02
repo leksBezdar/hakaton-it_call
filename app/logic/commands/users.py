@@ -51,6 +51,24 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
 
 
 @dataclass(frozen=True)
+class UserLoginCommand(BaseCommand):
+    username: str
+    password: str
+
+
+@dataclass(frozen=True)
+class UserLoginCommandHandler(CommandHandler[UserLoginCommand, UserEntity]):
+    user_repository: IUserRepository
+
+    async def handle(self, command: UserLoginCommand) -> UserEntity:
+        user = await self.user_repository.get_by_username(username=command.username)
+        if not user or not user.password.check_password(command.password):
+            raise InvalidCredentialsException()
+
+        return user
+
+
+@dataclass(frozen=True)
 class ChangeUsernameCommand(BaseCommand):
     user_oid: str
     new_username: str

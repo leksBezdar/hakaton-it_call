@@ -8,6 +8,8 @@ from infrastructure.message_brokers.base import IMessageBroker
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
+from infrastructure.security.cookies.base import ICookieManager
+from infrastructure.security.cookies.jwt import PyJWTCookieManager
 from logic.commands.users import (
     ChangePasswordCommand,
     ChangePasswordCommandHandler,
@@ -23,11 +25,15 @@ from logic.commands.users import (
     SubscribeToEmailSenderCommandHandler,
     UnsubscribeFromEmailSenderCommand,
     UnsubscribeFromEmailSenderCommandHandler,
+    UserLoginCommand,
+    UserLoginCommandHandler,
 )
 from logic.mediator.base import Mediator
 from logic.mediator.event import EventMediator
 
 from logic.queries.users import (
+    GetTokensQuery,
+    GetTokensQueryHandler,
     GetUserByIdQuery,
     GetUserByIdQueryHandler,
     GetUserByUsernameQuery,
@@ -52,13 +58,25 @@ def _init_container() -> Container:
     def init_user_sqlalchemy_repository() -> IUserRepository:
         return SqlAlchemyUserRepository()
 
+    def init_cookie_manager() -> ICookieManager:
+        return PyJWTCookieManager(
+            _token_secret_key=settings.token_secret_key,
+            _algorithm=settings.algorithm,
+            _access_token_expire_minutes=settings.access_token_expire_minutes,
+            _refresh_token_expire_days=settings.refresh_token_expire_days,
+        )
+
     # Repositories
     container.register(
         IUserRepository, factory=init_user_sqlalchemy_repository, scope=Scope.singleton
     )
+    container.register(
+        ICookieManager, factory=init_cookie_manager, scope=Scope.singleton
+    )
 
     # Command handlers
     container.register(CreateUserCommandHandler)
+    container.register(UserLoginCommandHandler)
     container.register(ChangeUsernameCommandHandler)
     container.register(ChangePasswordCommandHandler)
     container.register(SubscribeToEmailSenderCommandHandler)
@@ -67,6 +85,7 @@ def _init_container() -> Container:
     container.register(DeleteUserCommandHandler)
 
     # Query Handlers
+    container.register(GetTokensQueryHandler)
     container.register(GetUsersQueryHandler)
     container.register(GetUserByIdQueryHandler)
     container.register(GetUserByUsernameQueryHandler)
@@ -92,6 +111,10 @@ def _init_container() -> Container:
 
         # Command Handlers
         create_user_handler = CreateUserCommandHandler(
+            _mediator=mediator,
+            user_repository=container.resolve(IUserRepository),
+        )
+        user_login_handler = UserLoginCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
         )
@@ -126,6 +149,10 @@ def _init_container() -> Container:
             [create_user_handler],
         )
         mediator.register_command(
+            UserLoginCommand,
+            [user_login_handler],
+        )
+        mediator.register_command(
             ChangeUsernameCommand,
             [change_username_handler],
         )
@@ -151,6 +178,10 @@ def _init_container() -> Container:
         )
 
         # Query Handlers
+        mediator.register_query(
+            GetTokensQuery,
+            container.resolve(GetTokensQueryHandler),
+        )
         mediator.register_query(
             GetUsersQuery,
             container.resolve(GetUsersQueryHandler),
