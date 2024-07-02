@@ -19,6 +19,7 @@ class CreateUserCommand(BaseCommand):
     username: str
     email: str
     password: str
+    is_subscribed: bool
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
             username=username,
             email=email,
             password=password,
+            is_subscribed=command.is_subscribed,
         )
 
         await self.user_repository.add(new_user)
@@ -95,6 +97,48 @@ class ChangePasswordCommandHandler(CommandHandler[ChangePasswordCommand, None]):
 
         new_password = Password(value=command.new_password)
         await user.change_password(new_password=new_password)
+        await self.user_repository.update(user)
+        await self._mediator.publish(user.pull_events())
+
+
+@dataclass(frozen=True)
+class SubscribeToEmailSenderCommand(BaseCommand):
+    user_oid: str
+
+
+@dataclass(frozen=True)
+class SubscribeToEmailSenderCommandHandler(
+    CommandHandler[SubscribeToEmailSenderCommand, None]
+):
+    user_repository: IUserRepository
+
+    async def handle(self, command: SubscribeToEmailSenderCommand):
+        user = await self.user_repository.get_by_oid(oid=command.user_oid)
+        if not user:
+            raise UserNotFoundException(value=command.user_oid)
+
+        await user.subscribe_to_email_sender()
+        await self.user_repository.update(user)
+        await self._mediator.publish(user.pull_events())
+
+
+@dataclass(frozen=True)
+class UnsubscribeFromEmailSenderCommand(BaseCommand):
+    user_oid: str
+
+
+@dataclass(frozen=True)
+class UnsubscribeFromEmailSenderCommandHandler(
+    CommandHandler[UnsubscribeFromEmailSenderCommand, None]
+):
+    user_repository: IUserRepository
+
+    async def handle(self, command: UnsubscribeFromEmailSenderCommand) -> None:
+        user = await self.user_repository.get_by_oid(oid=command.user_oid)
+        if not user:
+            raise UserNotFoundException(value=command.user_oid)
+
+        await user.unsubscribe_from_email_sender()
         await self.user_repository.update(user)
         await self._mediator.publish(user.pull_events())
 

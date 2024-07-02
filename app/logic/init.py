@@ -19,6 +19,10 @@ from logic.commands.users import (
     DeleteUserCommandHandler,
     RestoreUserCommand,
     RestoreUserCommandHandler,
+    SubscribeToEmailSenderCommand,
+    SubscribeToEmailSenderCommandHandler,
+    UnsubscribeFromEmailSenderCommand,
+    UnsubscribeFromEmailSenderCommandHandler,
 )
 from logic.mediator.base import Mediator
 from logic.mediator.event import EventMediator
@@ -57,6 +61,8 @@ def _init_container() -> Container:
     container.register(CreateUserCommandHandler)
     container.register(ChangeUsernameCommandHandler)
     container.register(ChangePasswordCommandHandler)
+    container.register(SubscribeToEmailSenderCommandHandler)
+    container.register(UnsubscribeFromEmailSenderCommandHandler)
     container.register(RestoreUserCommandHandler)
     container.register(DeleteUserCommandHandler)
 
@@ -97,6 +103,16 @@ def _init_container() -> Container:
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
         )
+        subscribe_to_email_sender_handler = SubscribeToEmailSenderCommandHandler(
+            _mediator=mediator,
+            user_repository=container.resolve(IUserRepository),
+        )
+        unsubscribe_from_email_sender_handler = (
+            UnsubscribeFromEmailSenderCommandHandler(
+                _mediator=mediator,
+                user_repository=container.resolve(IUserRepository),
+            )
+        )
         restore_user_handler = RestoreUserCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
@@ -116,6 +132,14 @@ def _init_container() -> Container:
         mediator.register_command(
             ChangePasswordCommand,
             [change_password_handler],
+        )
+        mediator.register_command(
+            SubscribeToEmailSenderCommand,
+            [subscribe_to_email_sender_handler],
+        )
+        mediator.register_command(
+            UnsubscribeFromEmailSenderCommand,
+            [unsubscribe_from_email_sender_handler],
         )
         mediator.register_command(
             RestoreUserCommand,

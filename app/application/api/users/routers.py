@@ -19,6 +19,8 @@ from logic.commands.users import (
     CreateUserCommand,
     DeleteUserCommand,
     RestoreUserCommand,
+    SubscribeToEmailSenderCommand,
+    UnsubscribeFromEmailSenderCommand,
 )
 from logic.init import init_container
 from logic.mediator.base import Mediator
@@ -49,6 +51,7 @@ async def create_user(
                 email=user_in.email,
                 username=user_in.username,
                 password=user_in.password,
+                is_subscribed=user_in.is_subscribed,
             )
         )
     except ApplicationException as e:
@@ -177,6 +180,46 @@ async def change_password(
                 old_password=user_in.old_password,
                 new_password=user_in.new_password,
             )
+        )
+    except ApplicationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+
+
+@user_router.patch(
+    "/{user_oid}/subscribe",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
+    },
+)
+async def subscribe_to_email_sender(
+    user_oid: str,
+    container: Annotated[Container, Depends(init_container)],
+):
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        await mediator.handle_command(SubscribeToEmailSenderCommand(user_oid=user_oid))
+    except ApplicationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+
+
+@user_router.patch(
+    "/{user_oid}/unsubscribe",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
+    },
+)
+async def unsubscribe_from_email_sender(
+    user_oid: str,
+    container: Annotated[Container, Depends(init_container)],
+):
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        await mediator.handle_command(
+            UnsubscribeFromEmailSenderCommand(user_oid=user_oid)
         )
     except ApplicationException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)

@@ -12,6 +12,7 @@ class UserCreatedEvent(BaseEvent):
     username: str
     user_oid: str
     email: str
+    is_subscribed: bool
 
 
 @dataclass
@@ -28,6 +29,24 @@ class UserChangedPasswordEvent(BaseEvent):
     title: ClassVar[str] = "Password Changed"
 
     user_oid: str
+
+
+@dataclass
+class UserSubscribedToEmailSenderEvent(BaseEvent):
+    title: ClassVar[str] = "User Subscribed to Email Sender"
+
+    user_oid: str
+    username: str
+    email: str
+
+
+@dataclass
+class UserUnsubscribedFromEmailSenderEvent(BaseEvent):
+    title: ClassVar[str] = "User Unsubscribed from Email Sender"
+
+    user_oid: str
+    username: str
+    email: str
 
 
 @dataclass

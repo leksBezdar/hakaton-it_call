@@ -10,6 +10,8 @@ from domain.events.users import (
     UserChangedUsernameEvent,
     UserCreatedEvent,
     UserDeletedEvent,
+    UserSubscribedToEmailSenderEvent,
+    UserUnsubscribedFromEmailSenderEvent,
 )
 
 
@@ -31,17 +33,20 @@ class UserEntity(BaseEntity):
         username: Username,
         password: Password,
         email: UserEmail,
+        is_subscribed: bool,
     ) -> "UserEntity":
         new_user = cls(
             email=email,
             username=username,
             password=password,
+            is_subscribed=is_subscribed,
         )
         new_user.register_event(
             UserCreatedEvent(
                 username=new_user.username.as_generic_type(),
                 email=new_user.email.as_generic_type(),
                 user_oid=new_user.oid,
+                is_subscribed=new_user.is_subscribed,
             )
         )
         return new_user
@@ -66,6 +71,30 @@ class UserEntity(BaseEntity):
         self.register_event(
             UserChangedPasswordEvent(
                 user_oid=self.oid,
+            )
+        )
+
+    async def subscribe_to_email_sender(self) -> None:
+        self._validate_not_deleted()
+        self.is_subscribed = True
+
+        self.register_event(
+            UserSubscribedToEmailSenderEvent(
+                user_oid=self.oid,
+                username=self.username.as_generic_type(),
+                email=self.email.as_generic_type(),
+            )
+        )
+
+    async def unsubscribe_from_email_sender(self) -> None:
+        self._validate_not_deleted()
+        self.is_subscribed = False
+
+        self.register_event(
+            UserUnsubscribedFromEmailSenderEvent(
+                user_oid=self.oid,
+                username=self.username.as_generic_type(),
+                email=self.email.as_generic_type(),
             )
         )
 
