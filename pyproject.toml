@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "hakaton-it-call"
+version = "0.1.0"
+description = ""
+authors = ["leks <vollkovalex1991@mail.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = {extras = ["all"], version = "^0.111.0"}
+sqlalchemy = "^2.0.30"
+aiokafka = "^0.10.0"
+punq = "^0.7.0"
+alembic = "1.8.0"
+asyncpg = "^0.29.0"
+ipython = "^8.26.0"
+
+
+[tool.poetry.group.lint.dependencies]
+ruff = "^0.4.6"
+pre-commit = "^3.7.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.1"
+pytest-asyncio = "^0.23.7"
+faker = "^25.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
