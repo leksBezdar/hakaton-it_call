@@ -35,9 +35,9 @@ app-shell:
 app-logs:
 	${LOGS} ${APP_CONTAINER} -f
 
-.PHONY: migrate
-migrate:
-	@if [ -z "${name}" ]; then echo "Description is required. Usage: make migrations name=\"description\""; exit 1; fi
+.PHONY: revision
+revision:
+	@if [ -z "${name}" ]; then echo "Description is required. Usage: make revision name=\"description\""; exit 1; fi
 	${EXEC} ${APP_CONTAINER} alembic revision --autogenerate -m "${name}"
 
 .PHONY: upgrade

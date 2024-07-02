@@ -4,7 +4,7 @@ from dataclasses import (
     dataclass,
     field,
 )
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from domain.events.base import BaseEvent
@@ -21,7 +21,7 @@ class BaseEntity(ABC):
         kw_only=True,
     )
     created_at: datetime = field(
-        default_factory=datetime.now,
+        default_factory=lambda: datetime.now(UTC),
         kw_only=True,
     )
 

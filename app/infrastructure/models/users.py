@@ -17,6 +17,9 @@ class UserModel(Base, BaseIDMixin):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()
     )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), onupdate=func.now()
+    )
 
     is_subscribed: Mapped[bool] = mapped_column(
         default=False, server_default=text("false")
@@ -25,7 +28,7 @@ class UserModel(Base, BaseIDMixin):
         default=False, server_default=text("false")
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
-        default=None, server_default=Null()
+        TIMESTAMP(timezone=True), default=None, server_default=Null()
     )
 
     def __str__(self):

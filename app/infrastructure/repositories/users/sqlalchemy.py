@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Iterable
 
 from sqlalchemy import Select, func, or_, select
@@ -91,7 +91,7 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
             user = result.scalars().first()
             if user:
                 user.is_deleted = True
-                user.deleted_at = datetime.now().replace(tzinfo=None)
+                user.deleted_at = datetime.now(UTC)
                 await session.commit()
 
                 return convert_user_model_to_entity(user)

@@ -20,6 +20,9 @@ class UserEntity(BaseEntity):
     password: Password
     is_subscribed: bool = field(default=False, kw_only=True)
     is_deleted: bool = field(default=False, kw_only=True)
+    updated_at: datetime = field(
+        default_factory=lambda: datetime.now(UTC), kw_only=True
+    )
     deleted_at: datetime | None = field(default=None, kw_only=True)
 
     @classmethod
