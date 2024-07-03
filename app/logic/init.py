@@ -2,12 +2,19 @@ from functools import lru_cache
 from uuid import uuid4
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from punq import Container, Scope
+import redis
 
 
 from infrastructure.message_brokers.base import IMessageBroker
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
+from infrastructure.services.codes.base import ICodeSerivce
+from infrastructure.services.codes.redis import RedisCodeService
+from infrastructure.services.senders.base import ISenderService
+from infrastructure.services.senders.composed import ComposedSenderService
+from infrastructure.services.senders.dummy import DummySenderService
+from infrastructure.services.senders.smtp import EmailSenderService
 from logic.commands.users import (
     ChangeUsernameCommand,
     ChangeUsernameCommandHandler,
@@ -49,6 +56,26 @@ def _init_container() -> Container:
 
     def init_user_sqlalchemy_repository() -> IUserRepository:
         return SqlAlchemyUserRepository()
+
+    def init_redis_code_service() -> ICodeSerivce:
+        return RedisCodeService(
+            redis_client=redis.Redis(
+                host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB
+            )
+        )
+
+    # Services
+    container.register(
+        ICodeSerivce, factory=init_redis_code_service, scope=Scope.singleton
+    )
+    container.register(
+        ISenderService,
+        ComposedSenderService,
+        sender_services=(
+            DummySenderService(),
+            EmailSenderService(),
+        ),
+    )
 
     # Repositories
     container.register(

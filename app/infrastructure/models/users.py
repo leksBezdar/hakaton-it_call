@@ -13,18 +13,20 @@ class UserModel(Base, BaseIDMixin):
 
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
-    created_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), server_default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), onupdate=func.now()
-    )
+    verification_token: Mapped[str] = mapped_column(nullable=True, unique=True)
 
     is_subscribed: Mapped[bool] = mapped_column(
         default=False, server_default=text("false")
     )
     is_deleted: Mapped[bool] = mapped_column(
         default=False, server_default=text("false")
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), onupdate=func.now()
     )
     deleted_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(timezone=True), default=None, server_default=Null()

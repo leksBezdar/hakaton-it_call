@@ -30,10 +30,18 @@ class SCreateUserOut(BaseModel):
 
 
 class SLoginIn(BaseModel):
-    verification_code: str
+    email: str
 
 
 class SLoginOut(BaseModel):
+    message: str
+
+
+class SConfirmIn(BaseModel):
+    verification_code: str
+
+
+class SConfirmOut(BaseModel):
     oid: str
     email: EmailStr
     username: str
@@ -41,7 +49,7 @@ class SLoginOut(BaseModel):
     is_subscribed: bool
 
     @classmethod
-    def from_entity(cls, user: UserEntity) -> "SLoginOut":
+    def from_entity(cls, user: UserEntity) -> "SConfirmOut":
         return cls(
             oid=user.oid,
             email=user.email.as_generic_type(),

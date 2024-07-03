@@ -15,3 +15,10 @@ class RepositoryException(InfrastructureException):
     @property
     def message(self) -> str:
         return "Repository exeption has occurred"
+
+
+@dataclass(eq=False)
+class ServiceException(ApplicationException):
+    @property
+    def message(self) -> str:
+        return "Service exeption has occurred"

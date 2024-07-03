@@ -13,7 +13,6 @@ from application.api.users.schemas import (
     SLoginIn,
     SLoginOut,
 )
-from domain.entities.users import UserEntity
 from domain.exceptions.base import ApplicationException
 from logic.commands.users import (
     ChangeUsernameCommand,
@@ -73,19 +72,34 @@ async def create_user(
     },
 )
 async def login(
-    user_in: SLoginIn,  # noqa
+    user_in: SLoginIn,
     container: Annotated[Container, Depends(init_container)],
 ):
     """Login user."""
     mediator: Mediator = container.resolve(Mediator)
     try:
-        user, *_ = await mediator.handle_command(UserLoginCommand(...))
-        user: UserEntity
+        await mediator.handle_command(UserLoginCommand(email=user_in.email))
 
     except ApplicationException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
 
-    return SLoginOut.from_entity(user)
+    return SLoginOut(
+        message=f"Код для авторизации был выслан на почту: {user_in.email}"
+    )
+
+
+@user_router.post(
+    "/confirm/",
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_200_OK: {"model": SLoginOut},
+        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
+    },
+)
+async def confirm_login(
+    verification_code: str,
+    container: Annotated[Container, Depends(init_container)],
+): ...
 
 
 @user_router.get(

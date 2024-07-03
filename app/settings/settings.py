@@ -19,6 +19,10 @@ class Settings(BaseSettings):
 
     KAFKA_URL: str = Field(default="kafka:29092")
 
+    REDIS_HOST: str = Field(default="redis-it_call")
+    REDIS_PORT: int = Field(default=6379)
+    REDIS_DB: int = Field(default=0)
+
     @property
     def DB_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

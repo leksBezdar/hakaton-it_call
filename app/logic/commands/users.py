@@ -48,7 +48,7 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
 
 @dataclass(frozen=True)
 class UserLoginCommand(BaseCommand):
-    verification_code: str
+    email: str
 
 
 @dataclass(frozen=True)
