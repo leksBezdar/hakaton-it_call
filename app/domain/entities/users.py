@@ -7,6 +7,7 @@ from domain.values.users import Username, UserEmail
 from domain.events.users import (
     RestoreUserEvent,
     UserChangedUsernameEvent,
+    UserConfirmedLoginEvent,
     UserCreatedEvent,
     UserDeletedEvent,
     UserSubscribedToEmailSenderEvent,
@@ -94,6 +95,17 @@ class UserEntity(BaseEntity):
                 user_oid=self.oid,
                 username=self.username.as_generic_type(),
                 restore_datetime=datetime.now(UTC),
+            )
+        )
+
+    async def confirm_login(self) -> None:
+        self._validate_not_deleted
+
+        self.register_event(
+            UserConfirmedLoginEvent(
+                user_oid=self.oid,
+                username=self.username.as_generic_type(),
+                email=self.email.as_generic_type(),
             )
         )
 

@@ -21,7 +21,7 @@ class RedisCodeService(ICodeService, IRedisClient):
 
     def validate(self, code: str, user: UserEntity) -> None:
         cached_code: bytes = self.redis_client.get(user.email.as_generic_type())
-
+        # TODO move exception handling to command layer
         if cached_code is None:
             raise CodeWasNotFoundException(code=code)
 

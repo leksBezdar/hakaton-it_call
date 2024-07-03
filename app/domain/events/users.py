@@ -25,6 +25,15 @@ class UserChangedUsernameEvent(BaseEvent):
 
 
 @dataclass
+class UserConfirmedLoginEvent(BaseEvent):
+    title: ClassVar[str] = "User Confirmed Login"
+
+    user_oid: str
+    username: str
+    email: str
+
+
+@dataclass
 class UserSubscribedToEmailSenderEvent(BaseEvent):
     title: ClassVar[str] = "User Subscribed to Email Sender"
 

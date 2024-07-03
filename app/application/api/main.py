@@ -11,7 +11,7 @@ def create_app() -> FastAPI:
         debug=True,
     )
 
-    app.include_router(healthcheck_router, prefix="/healthcheck", tags=["HEALTHCHECK"])
     app.include_router(user_router, prefix="/users", tags=["USERS"])
+    app.include_router(healthcheck_router, prefix="/healthcheck", tags=["HEALTHCHECK"])
 
     return app

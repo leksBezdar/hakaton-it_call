@@ -28,6 +28,8 @@ from logic.commands.users import (
     SubscribeToEmailSenderCommandHandler,
     UnsubscribeFromEmailSenderCommand,
     UnsubscribeFromEmailSenderCommandHandler,
+    UserConfirmLoginCommand,
+    UserConfirmLoginCommandHandler,
     UserLoginCommand,
     UserLoginCommandHandler,
 )
@@ -84,6 +86,7 @@ def _init_container() -> Container:
     # Command handlers
     container.register(CreateUserCommandHandler)
     container.register(UserLoginCommandHandler)
+    container.register(UserConfirmLoginCommandHandler)
     container.register(ChangeUsernameCommandHandler)
     container.register(SubscribeToEmailSenderCommandHandler)
     container.register(UnsubscribeFromEmailSenderCommandHandler)
@@ -124,6 +127,11 @@ def _init_container() -> Container:
             code_service=container.resolve(ICodeService),
             sender_service=container.resolve(ISenderService),
         )
+        user_confirm_login_handler = UserConfirmLoginCommandHandler(
+            _mediator=mediator,
+            user_repository=container.resolve(IUserRepository),
+            code_service=container.resolve(ICodeService),
+        )
         change_username_handler = ChangeUsernameCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
@@ -153,6 +161,10 @@ def _init_container() -> Container:
         mediator.register_command(
             UserLoginCommand,
             [user_login_handler],
+        )
+        mediator.register_command(
+            UserConfirmLoginCommand,
+            [user_confirm_login_handler],
         )
         mediator.register_command(
             ChangeUsernameCommand,

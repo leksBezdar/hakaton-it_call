@@ -6,6 +6,8 @@ from application.api.schemas import SErrorMessage
 from application.api.users.filters import GetUsersFilters
 from application.api.users.schemas import (
     SChangeUsername,
+    SConfirmIn,
+    SConfirmOut,
     SCreateUserIn,
     SCreateUserOut,
     SGetUser,
@@ -21,6 +23,7 @@ from logic.commands.users import (
     RestoreUserCommand,
     SubscribeToEmailSenderCommand,
     UnsubscribeFromEmailSenderCommand,
+    UserConfirmLoginCommand,
     UserLoginCommand,
 )
 from logic.init import init_container
@@ -32,6 +35,9 @@ from logic.queries.users import (
 
 
 user_router = APIRouter()
+
+
+# TODO move authorization logic to auth layer into auth_router (login, confirm_login)
 
 
 @user_router.post(
@@ -64,7 +70,7 @@ async def create_user(
 
 
 @user_router.post(
-    "/login",
+    "/login/",
     status_code=status.HTTP_200_OK,
     responses={
         status.HTTP_200_OK: {"model": SLoginOut},
@@ -97,9 +103,23 @@ async def login(
     },
 )
 async def confirm_login(
-    verification_code: str,
+    user_in: SConfirmIn,
     container: Annotated[Container, Depends(init_container)],
-): ...
+):
+    """Confirm user login."""
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        user, *_ = await mediator.handle_command(
+            UserConfirmLoginCommand(
+                email=user_in.email,
+                verification_token=user_in.verification_token,
+            )
+        )
+    except ApplicationException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+
+    return SConfirmOut.from_entity(user)
 
 
 @user_router.get(
@@ -180,7 +200,7 @@ async def change_username(
 
 
 @user_router.patch(
-    "/{user_oid}/subscribe",
+    "/{user_oid}/subscribe/",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
         status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
@@ -199,7 +219,7 @@ async def subscribe_to_email_sender(
 
 
 @user_router.patch(
-    "/{user_oid}/unsubscribe",
+    "/{user_oid}/unsubscribe/",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
         status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},

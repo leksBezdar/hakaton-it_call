@@ -61,8 +61,38 @@ class UserLoginCommandHandler(CommandHandler[UserLoginCommand, None]):
 
     async def handle(self, command: UserLoginCommand) -> None:
         user = await self.user_repository.get_by_email(email=command.email)
+
+        if not user:
+            raise UserNotFoundException(value=command.email)
+
         code = self.code_service.generate_code(user=user)
         self.sender_service.send_code(user=user, code=code)
+
+
+@dataclass(frozen=True)
+class UserConfirmLoginCommand(BaseCommand):
+    email: str
+    verification_token: str
+
+
+@dataclass(frozen=True)
+class UserConfirmLoginCommandHandler(
+    CommandHandler[UserConfirmLoginCommand, UserEntity]
+):
+    user_repository: IUserRepository
+    code_service: ICodeService
+
+    async def handle(self, command: UserConfirmLoginCommand) -> UserEntity:
+        user = await self.user_repository.get_by_email(email=command.email)
+
+        if not user:
+            raise UserNotFoundException(value=command.email)
+
+        self.code_service.validate(code=command.verification_token, user=user)
+        await user.confirm_login()
+        await self._mediator.publish(user.pull_events())
+
+        return user
 
 
 @dataclass(frozen=True)
