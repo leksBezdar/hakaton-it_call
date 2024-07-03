@@ -1,13 +1,10 @@
-from dataclasses import dataclass, field
-import hashlib
+from dataclasses import dataclass
 import re
 
 from domain.exceptions.users import (
     EmptyEmail,
-    EmptyPassword,
     EmptyUsername,
     InvalidEmailFormat,
-    InvalidPasswordLength,
     InvalidUsernameCharacters,
     InvalidUsernameLength,
 )
@@ -47,37 +44,6 @@ class UserEmail(BaseValueObject):
 
         if not re.match(r"^\S+@\S+\.\S+$", self.value):
             raise InvalidEmailFormat(self.value)
-
-    def as_generic_type(self):
-        return str(self.value)
-
-
-@dataclass
-class Password(BaseValueObject):
-    value: str
-    is_hashed: bool = field(default=False, kw_only=True)
-
-    def __post_init__(self):
-        super().__post_init__()
-        if not self.is_hashed:
-            self.hash_password(self.value)
-
-    def validate(self):
-        if not self.value:
-            raise EmptyPassword()
-
-        value_length = len(self.value)
-
-        if value_length not in range(3, 100):
-            raise InvalidPasswordLength(value_length)
-
-    def hash_password(self, password: str) -> None:
-        self.is_hashed = True
-        self.value = hashlib.sha256(password.encode("utf-8")).hexdigest()
-
-    def check_password(self, plain_password: str) -> bool:
-        hashed_input = hashlib.sha256(plain_password.encode("utf-8")).hexdigest()
-        return hashed_input == self.value
 
     def as_generic_type(self):
         return str(self.value)

@@ -14,7 +14,6 @@ punq = "^0.7.0"
 alembic = "1.8.0"
 asyncpg = "^0.29.0"
 ipython = "^8.26.0"
-pyjwt = "^2.8.0"
 
 
 [tool.poetry.group.lint.dependencies]

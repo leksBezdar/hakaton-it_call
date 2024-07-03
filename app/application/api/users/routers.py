@@ -1,11 +1,10 @@
 from typing import Annotated
 from punq import Container
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from application.api.schemas import SErrorMessage
 from application.api.users.filters import GetUsersFilters
 from application.api.users.schemas import (
-    SChangePassword,
     SChangeUsername,
     SCreateUserIn,
     SCreateUserOut,
@@ -17,7 +16,6 @@ from application.api.users.schemas import (
 from domain.entities.users import UserEntity
 from domain.exceptions.base import ApplicationException
 from logic.commands.users import (
-    ChangePasswordCommand,
     ChangeUsernameCommand,
     CreateUserCommand,
     DeleteUserCommand,
@@ -29,13 +27,9 @@ from logic.commands.users import (
 from logic.init import init_container
 from logic.mediator.base import Mediator
 from logic.queries.users import (
-    GetTokensQuery,
     GetUserByIdQuery,
-    GetUserByUsernameQuery,
     GetUsersQuery,
-    Tokens,
 )
-from settings.settings import Settings
 
 
 user_router = APIRouter()
@@ -61,7 +55,6 @@ async def create_user(
             CreateUserCommand(
                 email=user_in.email,
                 username=user_in.username,
-                password=user_in.password,
                 is_subscribed=user_in.is_subscribed,
             )
         )
@@ -80,35 +73,17 @@ async def create_user(
     },
 )
 async def login(
-    user_in: SLoginIn,
+    user_in: SLoginIn,  # noqa
     container: Annotated[Container, Depends(init_container)],
-    response: Response,
 ):
     """Login user."""
     mediator: Mediator = container.resolve(Mediator)
-    settings: Settings = container.resolve(Settings)
-
     try:
-        user, *_ = await mediator.handle_command(
-            UserLoginCommand(username=user_in.username, password=user_in.password)
-        )
+        user, *_ = await mediator.handle_command(UserLoginCommand(...))
         user: UserEntity
 
     except ApplicationException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
-    else:
-        # TODO change get tokens query to get tokens command then add /refresh_tokens router
-        tokens: Tokens = await mediator.handle_query(GetTokensQuery(user_oid=user.oid))
-        response.set_cookie(
-            "access_token",
-            tokens.access_token,
-            max_age=settings.access_token_expire_minutes * 60,
-        )
-        response.set_cookie(
-            "refresh_token",
-            tokens.refresh_token,
-            max_age=settings.refresh_token_expire_days * 60 * 24,
-        )
 
     return SLoginOut.from_entity(user)
 
@@ -165,28 +140,6 @@ async def get_user_by_id(
     return SGetUser.from_entity(user)
 
 
-@user_router.get(
-    "/@{username}/",
-    status_code=status.HTTP_200_OK,
-    responses={
-        status.HTTP_200_OK: {"model": SGetUser},
-        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
-    },
-)
-async def get_user_by_username(
-    username: str,
-    container: Annotated[Container, Depends(init_container)],
-):
-    """Get user by username."""
-    mediator: Mediator = container.resolve(Mediator)
-    try:
-        user = await mediator.handle_query(GetUserByUsernameQuery(username=username))
-    except ApplicationException as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
-
-    return SGetUser.from_entity(user)
-
-
 @user_router.patch(
     "/{user_oid}/username/",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -206,32 +159,6 @@ async def change_username(
             ChangeUsernameCommand(
                 user_oid=user_oid,
                 new_username=user_in.new_username,
-            )
-        )
-    except ApplicationException as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
-
-
-@user_router.patch(
-    "/{user_oid}/password/",
-    status_code=status.HTTP_204_NO_CONTENT,
-    responses={
-        status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
-    },
-)
-async def change_password(
-    user_oid: str,
-    user_in: SChangePassword,
-    container: Annotated[Container, Depends(init_container)],
-):
-    mediator: Mediator = container.resolve(Mediator)
-
-    try:
-        await mediator.handle_command(
-            ChangePasswordCommand(
-                user_oid=user_oid,
-                old_password=user_in.old_password,
-                new_password=user_in.new_password,
             )
         )
     except ApplicationException as e:

@@ -20,22 +20,6 @@ class EmptyUsername(ApplicationException):
 
 
 @dataclass(eq=False)
-class EmptyPassword(ApplicationException):
-    @property
-    def message(self) -> str:
-        return "Password is empty"
-
-
-@dataclass(eq=False)
-class InvalidPasswordLength(ApplicationException):
-    length: str
-
-    @property
-    def message(self) -> str:
-        return f"Password length is invalid: {self.length}"
-
-
-@dataclass(eq=False)
 class EmptyEmail(ApplicationException):
     @property
     def message(self) -> str:

@@ -18,11 +18,6 @@ class InMemoryUserRepository(IUserRepository):
             if user.oid == oid:
                 return user
 
-    async def get_by_username(self, username: str) -> UserEntity | None:
-        for user in self._saved_users:
-            if user.username == username:
-                return user
-
     async def get_existing_usernames(self) -> list[Username]:
         return [user.username for user in self._saved_users]
 

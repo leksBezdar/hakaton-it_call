@@ -25,13 +25,6 @@ class UserChangedUsernameEvent(BaseEvent):
 
 
 @dataclass
-class UserChangedPasswordEvent(BaseEvent):
-    title: ClassVar[str] = "Password Changed"
-
-    user_oid: str
-
-
-@dataclass
 class UserSubscribedToEmailSenderEvent(BaseEvent):
     title: ClassVar[str] = "User Subscribed to Email Sender"
 

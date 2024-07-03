@@ -8,7 +8,6 @@ from domain.entities.users import UserEntity
 class SCreateUserIn(BaseModel):
     email: EmailStr
     username: str
-    password: str
     is_subscribed: bool = False
 
 
@@ -31,8 +30,7 @@ class SCreateUserOut(BaseModel):
 
 
 class SLoginIn(BaseModel):
-    username: str
-    password: str
+    verification_code: str
 
 
 class SLoginOut(BaseModel):
@@ -73,11 +71,6 @@ class SGetUser(BaseModel):
 
 class SChangeUsername(BaseModel):
     new_username: str
-
-
-class SChangePassword(BaseModel):
-    old_password: str
-    new_password: str
 
 
 class SGetUsersQueryResponse(SBaseQueryResponse[list[SGetUser]]): ...

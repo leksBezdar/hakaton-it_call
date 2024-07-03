@@ -30,16 +30,5 @@ class Settings(BaseSettings):
             f"{self.TEST_DB_PORT}/{self.TEST_DB_NAME}"
         )
 
-    # Token settings
-    token_secret_key: str = Field(alias="TOKEN_SECRET_KEY", default="example")
-    algorithm: str = Field(alias="ALGORITHM", default="HS256")
-
-    access_token_expire_minutes: int = Field(
-        alias="ACCESS_TOKEN_EXPIRE_MINUTES", default=30
-    )
-    refresh_token_expire_days: int = Field(
-        alias="REFRESH_TOKEN_EXPIRE_DAYS", default=30
-    )
-
 
 settings = Settings()

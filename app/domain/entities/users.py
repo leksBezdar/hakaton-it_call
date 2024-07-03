@@ -3,10 +3,9 @@ from datetime import UTC, datetime
 
 from domain.entities.base import BaseEntity
 from domain.exceptions.users import UserAlreadyDeleted, UserNotDeleted
-from domain.values.users import Username, UserEmail, Password
+from domain.values.users import Username, UserEmail
 from domain.events.users import (
     RestoreUserEvent,
-    UserChangedPasswordEvent,
     UserChangedUsernameEvent,
     UserCreatedEvent,
     UserDeletedEvent,
@@ -19,7 +18,6 @@ from domain.events.users import (
 class UserEntity(BaseEntity):
     email: UserEmail
     username: Username
-    password: Password
     is_subscribed: bool = field(default=False, kw_only=True)
     is_deleted: bool = field(default=False, kw_only=True)
     updated_at: datetime = field(
@@ -31,14 +29,12 @@ class UserEntity(BaseEntity):
     async def create(
         cls,
         username: Username,
-        password: Password,
         email: UserEmail,
         is_subscribed: bool,
     ) -> "UserEntity":
         new_user = cls(
             email=email,
             username=username,
-            password=password,
             is_subscribed=is_subscribed,
         )
         new_user.register_event(
@@ -61,16 +57,6 @@ class UserEntity(BaseEntity):
                 user_oid=self.oid,
                 old_username=old_username,
                 new_username=new_username,
-            )
-        )
-
-    async def change_password(self, new_password: Password) -> None:
-        self._validate_not_deleted()
-        self.password = new_password
-
-        self.register_event(
-            UserChangedPasswordEvent(
-                user_oid=self.oid,
             )
         )
 

@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 
 from domain.entities.users import UserEntity
-from domain.values.users import UserEmail, Password, Username
+from domain.values.users import UserEmail, Username
 from infrastructure.repositories.users.base import (
     IUserRepository,
 )
 from logic.commands.base import BaseCommand, CommandHandler
 from logic.exceptions.users import (
-    InvalidCredentialsException,
     UserAlreadyExistsException,
     UserNotFoundException,
     UsernameAlreadyExistsException,
@@ -18,7 +17,6 @@ from logic.exceptions.users import (
 class CreateUserCommand(BaseCommand):
     username: str
     email: str
-    password: str
     is_subscribed: bool
 
 
@@ -29,7 +27,6 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
     async def handle(self, command: CreateUserCommand) -> UserEntity:
         username = Username(value=command.username)
         email = UserEmail(value=command.email)
-        password = Password(value=command.password)
 
         # TODO move existing check to entity layer
         if await self.user_repository.check_user_exists_by_email_and_username(
@@ -40,7 +37,6 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
         new_user = await UserEntity.create(
             username=username,
             email=email,
-            password=password,
             is_subscribed=command.is_subscribed,
         )
 
@@ -52,20 +48,14 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
 
 @dataclass(frozen=True)
 class UserLoginCommand(BaseCommand):
-    username: str
-    password: str
+    verification_code: str
 
 
 @dataclass(frozen=True)
 class UserLoginCommandHandler(CommandHandler[UserLoginCommand, UserEntity]):
     user_repository: IUserRepository
 
-    async def handle(self, command: UserLoginCommand) -> UserEntity:
-        user = await self.user_repository.get_by_username(username=command.username)
-        if not user or not user.password.check_password(command.password):
-            raise InvalidCredentialsException()
-
-        return user
+    async def handle(self, command: UserLoginCommand) -> UserEntity: ...
 
 
 @dataclass(frozen=True)
@@ -93,30 +83,6 @@ class ChangeUsernameCommandHandler(CommandHandler[ChangeUsernameCommand, None]):
             await user.change_username(new_username=new_username)
             await self.user_repository.update(user)
             await self._mediator.publish(user.pull_events())
-
-
-@dataclass(frozen=True)
-class ChangePasswordCommand(BaseCommand):
-    user_oid: str
-    old_password: str
-    new_password: str
-
-
-@dataclass(frozen=True)
-class ChangePasswordCommandHandler(CommandHandler[ChangePasswordCommand, None]):
-    user_repository: IUserRepository
-
-    async def handle(self, command: ChangePasswordCommand) -> None:
-        user = await self.user_repository.get_by_oid(oid=command.user_oid)
-        if not user:
-            raise UserNotFoundException(value=command.user_oid)
-        if not user.password.check_password(command.old_password):
-            raise InvalidCredentialsException()
-
-        new_password = Password(value=command.new_password)
-        await user.change_password(new_password=new_password)
-        await self.user_repository.update(user)
-        await self._mediator.publish(user.pull_events())
 
 
 @dataclass(frozen=True)
