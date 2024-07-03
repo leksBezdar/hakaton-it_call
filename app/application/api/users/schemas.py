@@ -30,7 +30,7 @@ class SCreateUserOut(BaseModel):
 
 
 class SLoginIn(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class SLoginOut(BaseModel):

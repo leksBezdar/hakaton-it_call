@@ -1,8 +1,14 @@
 version: '3.9'
 
-redis-it_call:
-  redis:
+services:
+  redis-it_call:
     image: redis:6-alpine
     container_name: redis-it_call
     ports:
       - "6379:6379"
+    networks:
+      - it_call_network
+
+networks:
+  it_call_network:
+    driver: bridge

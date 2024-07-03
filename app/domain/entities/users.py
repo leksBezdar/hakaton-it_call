@@ -117,3 +117,6 @@ class UserEntity(BaseEntity):
     def _validate_deleted(self) -> None:
         if not self.is_deleted:
             raise UserNotDeleted(self.oid)
+
+    def __str__(self) -> str:
+        return self.username.as_generic_type()

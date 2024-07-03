@@ -6,7 +6,7 @@ import redis
 from domain.entities.users import UserEntity
 
 
-class ICodeSerivce(ABC):
+class ICodeService(ABC):
     @abstractmethod
     def generate_code(self, user: UserEntity) -> str: ...
 

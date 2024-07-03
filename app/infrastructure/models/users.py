@@ -13,7 +13,6 @@ class UserModel(Base, BaseIDMixin):
 
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
-    verification_token: Mapped[str] = mapped_column(nullable=True, unique=True)
 
     is_subscribed: Mapped[bool] = mapped_column(
         default=False, server_default=text("false")

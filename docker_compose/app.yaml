@@ -14,8 +14,14 @@ services:
     volumes:
       - ../app/:/app/
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsSL http://main-app:8000/healthcheck/"]
+      test: ["CMD-SHELL", "curl -fsSL http://it_call-main-app:8000/healthcheck/"]
       interval: 30s
       timeout: 60s
       retries: 5
       start_period: 10s
+    networks:
+      - it_call_network
+
+networks:
+  it_call_network:
+    driver: bridge

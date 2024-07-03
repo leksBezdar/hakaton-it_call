@@ -16,6 +16,12 @@ services:
       - ../.env
     command:
       -p ${DB_PORT}
+    networks:
+      - it_call_network
 
 volumes:
   postgres_data_it_call:
+
+networks:
+  it_call_network:
+    driver: bridge

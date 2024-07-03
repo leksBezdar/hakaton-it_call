@@ -9,7 +9,7 @@ from infrastructure.message_brokers.base import IMessageBroker
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
-from infrastructure.services.codes.base import ICodeSerivce
+from infrastructure.services.codes.base import ICodeService
 from infrastructure.services.codes.redis import RedisCodeService
 from infrastructure.services.senders.base import ISenderService
 from infrastructure.services.senders.composed import ComposedSenderService
@@ -57,7 +57,7 @@ def _init_container() -> Container:
     def init_user_sqlalchemy_repository() -> IUserRepository:
         return SqlAlchemyUserRepository()
 
-    def init_redis_code_service() -> ICodeSerivce:
+    def init_redis_code_service() -> ICodeService:
         return RedisCodeService(
             redis_client=redis.Redis(
                 host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB
@@ -66,7 +66,7 @@ def _init_container() -> Container:
 
     # Services
     container.register(
-        ICodeSerivce, factory=init_redis_code_service, scope=Scope.singleton
+        ICodeService, factory=init_redis_code_service, scope=Scope.singleton
     )
     container.register(
         ISenderService,
@@ -121,6 +121,8 @@ def _init_container() -> Container:
         user_login_handler = UserLoginCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
+            code_service=container.resolve(ICodeService),
+            sender_service=container.resolve(ISenderService),
         )
         change_username_handler = ChangeUsernameCommandHandler(
             _mediator=mediator,

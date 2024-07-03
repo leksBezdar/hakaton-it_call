@@ -14,6 +14,9 @@ class IUserRepository(ABC):
     async def get_by_oid(self, oid: str) -> UserEntity | None: ...
 
     @abstractmethod
+    async def get_by_email(self, email: str) -> UserEntity | None: ...
+
+    @abstractmethod
     async def get_existing_usernames(self) -> list[Username]: ...
 
     @abstractmethod

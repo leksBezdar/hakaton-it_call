@@ -5,6 +5,8 @@ from domain.values.users import UserEmail, Username
 from infrastructure.repositories.users.base import (
     IUserRepository,
 )
+from infrastructure.services.codes.base import ICodeService
+from infrastructure.services.senders.base import ISenderService
 from logic.commands.base import BaseCommand, CommandHandler
 from logic.exceptions.users import (
     UserAlreadyExistsException,
@@ -52,10 +54,15 @@ class UserLoginCommand(BaseCommand):
 
 
 @dataclass(frozen=True)
-class UserLoginCommandHandler(CommandHandler[UserLoginCommand, UserEntity]):
+class UserLoginCommandHandler(CommandHandler[UserLoginCommand, None]):
     user_repository: IUserRepository
+    code_service: ICodeService
+    sender_service: ISenderService
 
-    async def handle(self, command: UserLoginCommand) -> UserEntity: ...
+    async def handle(self, command: UserLoginCommand) -> None:
+        user = await self.user_repository.get_by_email(email=command.email)
+        code = self.code_service.generate_code(user=user)
+        self.sender_service.send_code(user=user, code=code)
 
 
 @dataclass(frozen=True)
