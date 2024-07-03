@@ -19,7 +19,6 @@ def exception_mapper(
         try:
             return await func(*args, **kwargs)
         except SQLAlchemyError as err:
-            raise err
             raise RepositoryException from err
 
     return wrapped
