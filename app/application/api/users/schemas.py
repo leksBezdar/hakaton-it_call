@@ -39,7 +39,7 @@ class SLoginOut(BaseModel):
 
 class SConfirmIn(BaseModel):
     email: EmailStr
-    verification_token: str
+    otp: str
 
 
 class SConfirmOut(BaseModel):

@@ -5,7 +5,7 @@ from domain.values.users import UserEmail, Username
 from infrastructure.repositories.users.base import (
     IUserRepository,
 )
-from infrastructure.services.codes.base import ICodeService
+from infrastructure.services.otps.base import IOTPService
 from infrastructure.services.senders.base import ISenderService
 from logic.commands.base import BaseCommand, CommandHandler
 from logic.exceptions.users import (
@@ -56,7 +56,7 @@ class UserLoginCommand(BaseCommand):
 @dataclass(frozen=True)
 class UserLoginCommandHandler(CommandHandler[UserLoginCommand, None]):
     user_repository: IUserRepository
-    code_service: ICodeService
+    otp_service: IOTPService
     sender_service: ISenderService
 
     async def handle(self, command: UserLoginCommand) -> None:
@@ -65,14 +65,14 @@ class UserLoginCommandHandler(CommandHandler[UserLoginCommand, None]):
         if not user:
             raise UserNotFoundException(value=command.email)
 
-        code = self.code_service.generate_code(user=user)
-        self.sender_service.send_code(user=user, code=code)
+        otp = self.otp_service.generate_otp(user=user)
+        self.sender_service.send_otp(user=user, otp=otp)
 
 
 @dataclass(frozen=True)
 class UserConfirmLoginCommand(BaseCommand):
     email: str
-    verification_token: str
+    otp: str
 
 
 @dataclass(frozen=True)
@@ -80,7 +80,7 @@ class UserConfirmLoginCommandHandler(
     CommandHandler[UserConfirmLoginCommand, UserEntity]
 ):
     user_repository: IUserRepository
-    code_service: ICodeService
+    otp_service: IOTPService
 
     async def handle(self, command: UserConfirmLoginCommand) -> UserEntity:
         user = await self.user_repository.get_by_email(email=command.email)
@@ -88,7 +88,7 @@ class UserConfirmLoginCommandHandler(
         if not user:
             raise UserNotFoundException(value=command.email)
 
-        self.code_service.validate(code=command.verification_token, user=user)
+        self.otp_service.validate(otp=command.otp, user=user)
         await user.confirm_login()
         await self._mediator.publish(user.pull_events())
 

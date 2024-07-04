@@ -6,5 +6,5 @@ from infrastructure.services.senders.base import ISenderService
 
 @dataclass
 class DummySenderService(ISenderService):
-    def send_code(self, user: UserEntity, code: str) -> None:
-        print(f"Code {code} was sent to user: {user}")
+    def send_otp(self, user: UserEntity, otp: str) -> None:
+        print(f"OTP {otp} was sent to user: {user}")

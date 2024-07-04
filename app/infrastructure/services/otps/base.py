@@ -6,12 +6,12 @@ import redis
 from domain.entities.users import UserEntity
 
 
-class ICodeService(ABC):
+class IOTPService(ABC):
     @abstractmethod
-    def generate_code(self, user: UserEntity) -> str: ...
+    def generate_otp(self, user: UserEntity) -> str: ...
 
     @abstractmethod
-    def validate(self, code: str, user: UserEntity) -> None: ...
+    def validate(self, otp: str, user: UserEntity) -> None: ...
 
 
 @dataclass(frozen=True)

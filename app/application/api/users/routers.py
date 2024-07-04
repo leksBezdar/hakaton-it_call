@@ -35,9 +35,7 @@ from logic.queries.users import (
 
 
 user_router = APIRouter()
-
-
-# TODO move authorization logic to auth layer into auth_router (login, confirm_login)
+auth_router = APIRouter()
 
 
 @user_router.post(
@@ -69,7 +67,7 @@ async def create_user(
     return SCreateUserOut.from_entity(user)
 
 
-@user_router.post(
+@auth_router.post(
     "/login/",
     status_code=status.HTTP_200_OK,
     responses={
@@ -94,7 +92,7 @@ async def login(
     )
 
 
-@user_router.post(
+@auth_router.post(
     "/confirm/",
     status_code=status.HTTP_200_OK,
     responses={
@@ -113,7 +111,7 @@ async def confirm_login(
         user, *_ = await mediator.handle_command(
             UserConfirmLoginCommand(
                 email=user_in.email,
-                verification_token=user_in.verification_token,
+                otp=user_in.otp,
             )
         )
     except ApplicationException as e:

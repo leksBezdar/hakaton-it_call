@@ -9,8 +9,8 @@ from infrastructure.message_brokers.base import IMessageBroker
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
-from infrastructure.services.codes.base import ICodeService
-from infrastructure.services.codes.redis import RedisCodeService
+from infrastructure.services.otps.base import IOTPService
+from infrastructure.services.otps.redis import RedisOTPService
 from infrastructure.services.senders.base import ISenderService
 from infrastructure.services.senders.composed import ComposedSenderService
 from infrastructure.services.senders.dummy import DummySenderService
@@ -59,8 +59,8 @@ def _init_container() -> Container:
     def init_user_sqlalchemy_repository() -> IUserRepository:
         return SqlAlchemyUserRepository()
 
-    def init_redis_code_service() -> ICodeService:
-        return RedisCodeService(
+    def init_redis_otp_service() -> IOTPService:
+        return RedisOTPService(
             redis_client=redis.Redis(
                 host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DB
             )
@@ -68,7 +68,7 @@ def _init_container() -> Container:
 
     # Services
     container.register(
-        ICodeService, factory=init_redis_code_service, scope=Scope.singleton
+        IOTPService, factory=init_redis_otp_service, scope=Scope.singleton
     )
     container.register(
         ISenderService,
@@ -124,13 +124,13 @@ def _init_container() -> Container:
         user_login_handler = UserLoginCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
-            code_service=container.resolve(ICodeService),
+            otp_service=container.resolve(IOTPService),
             sender_service=container.resolve(ISenderService),
         )
         user_confirm_login_handler = UserConfirmLoginCommandHandler(
             _mediator=mediator,
             user_repository=container.resolve(IUserRepository),
-            code_service=container.resolve(ICodeService),
+            otp_service=container.resolve(IOTPService),
         )
         change_username_handler = ChangeUsernameCommandHandler(
             _mediator=mediator,
