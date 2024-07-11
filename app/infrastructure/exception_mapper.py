@@ -6,6 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from infrastructure.exceptions.base import RepositoryException
 
+
 Param = ParamSpec("Param")
 ReturnType = TypeVar("ReturnType")
 Func = Callable[Param, ReturnType]

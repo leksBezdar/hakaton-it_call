@@ -19,6 +19,15 @@ class Settings(BaseSettings):
 
     KAFKA_URL: str = Field(default="kafka:29092")
 
+    SENDER_MAIL: str
+    SMTP_APP_PASSWORD: str
+    SMTP_HOST: str = Field(default="smtp.gmail.com")
+    SMTP_PORT: int = Field(default=587)
+
+    @property
+    def SMTP_URL(self) -> tuple[str, int]:
+        return (self.SMTP_HOST, self.SMTP_PORT)
+
     REDIS_HOST: str = Field(default="redis-it_call")
     REDIS_PORT: int = Field(default=6379)
     REDIS_DB: int = Field(default=0)

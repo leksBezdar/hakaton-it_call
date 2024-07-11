@@ -1,8 +1,9 @@
 from functools import lru_cache
+import smtplib
 from uuid import uuid4
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from punq import Container, Scope
-import redis
+import redis  # type: ignore
 
 
 from infrastructure.message_brokers.base import IMessageBroker
@@ -54,7 +55,7 @@ def _init_container() -> Container:
     container = Container()
 
     container.register(Settings, instance=Settings(), scope=Scope.singleton)
-    settings: Settings = container.resolve(Settings)  # noqa
+    settings: Settings = container.resolve(Settings)
 
     def init_user_sqlalchemy_repository() -> IUserRepository:
         return SqlAlchemyUserRepository()
@@ -66,6 +67,13 @@ def _init_container() -> Container:
             )
         )
 
+    def init_smtplib_sender_service() -> ISenderService:
+        return EmailSenderService(
+            sender_mail=settings.SENDER_MAIL,
+            smtp_app_password=settings.SMTP_APP_PASSWORD,
+            server=smtplib.SMTP(*settings.SMTP_URL),
+        )
+
     # Services
     container.register(
         IOTPService, factory=init_redis_otp_service, scope=Scope.singleton
@@ -75,7 +83,7 @@ def _init_container() -> Container:
         ComposedSenderService,
         sender_services=(
             DummySenderService(),
-            EmailSenderService(),
+            init_smtplib_sender_service(),
         ),
     )
 
