@@ -72,6 +72,7 @@ def _init_container() -> Container:
             sender_mail=settings.SENDER_MAIL,
             smtp_app_password=settings.SMTP_APP_PASSWORD,
             server=smtplib.SMTP(*settings.SMTP_URL),
+            confirm_url=settings.CONFIRM_URL,
         )
 
     # Services
