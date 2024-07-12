@@ -31,51 +31,53 @@ class EmailSenderService(ISenderService):
             raise SMTPException
 
     def build_message_body(self, user: UserEntity, otp: str, subject: str) -> str:
+        current_datetime = datetime.now().strftime("%d.%m.%Y %H:%M")
+
         body = f"""
             <html>
                 <head>
                     <style>
                         body {{
-                        font-family: Arial, sans-serif;
-                        font-size: 16px;
-                        line-height: 1.6;
-                        color: #333;
+                            font-family: Arial, sans-serif;
+                            font-size: 16px;
+                            line-height: 1.6;
+                            color: #333;
                         }}
                         .container {{
-                        max-width: 600px;
-                        margin: 0 auto;
-                        padding: 20px;
-                        border: 1px solid #ddd;
-                        border-radius: 8px;
-                        background-color: #f9f9f9;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            padding: 20px;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            background-color: #f9f9f9;
                         }}
                         .header {{
-                        background-color: #007bff;
-                        color: #fff;
-                        padding: 20px 10px;
-                        text-align: center;
-                        border-radius: 8px 8px 0 0;
+                            background-color: #007bff;
+                            color: #fff;
+                            padding: 20px 10px;
+                            text-align: center;
+                            border-radius: 8px 8px 0 0;
                         }}
                         .content {{
-                        padding: 20px;
-                        text-align: center;
+                            padding: 20px;
+                            text-align: center;
                         }}
                         .footer {{
-                        background-color: #f0f0f0;
-                        padding: 10px;
-                        text-align: center;
-                        border-radius: 0 0 8px 8px;
+                            background-color: #f0f0f0;
+                            padding: 10px;
+                            text-align: center;
+                            border-radius: 0 0 8px 8px;
                         }}
                         .button {{
-                        display: inline-block;
-                        padding: 10px 20px;
-                        background-color: #007bff;
-                        color: #fff;
-                        text-decoration: none;
-                        border-radius: 5px;
+                            display: inline-block;
+                            padding: 10px 20px;
+                            background-color: #007bff;
+                            color: #fff;
+                            text-decoration: none;
+                            border-radius: 5px;
                         }}
                         .button:hover {{
-                        background-color: #0056b3;
+                            background-color: #0056b3;
                         }}
                     </style>
                 </head>
@@ -106,6 +108,7 @@ class EmailSenderService(ISenderService):
                             </p>
                         </div>
                         <div class="footer">
+                            <p>С уважением, команда it-call. Время отправки кода: {current_datetime}</p>
                             <p>© {datetime.now().year} it-call. Все права защищены.</p>
                         </div>
                     </div>
