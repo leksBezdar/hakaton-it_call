@@ -10,6 +10,8 @@ from infrastructure.message_brokers.base import IMessageBroker
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
+from infrastructure.scheduler.base import IScheduler
+from infrastructure.scheduler.scheduler import EmailScheduler
 from infrastructure.services.otps.base import IOTPService
 from infrastructure.services.otps.redis import RedisOTPService
 from infrastructure.services.senders.base import ISenderService
@@ -55,6 +57,7 @@ def _init_container() -> Container:
     container = Container()
 
     container.register(Settings, instance=Settings(), scope=Scope.singleton)
+
     settings: Settings = container.resolve(Settings)
 
     def init_user_sqlalchemy_repository() -> IUserRepository:
@@ -75,6 +78,14 @@ def _init_container() -> Container:
             confirm_url=settings.CONFIRM_URL,
         )
 
+    def init_email_scheduler() -> EmailScheduler:
+        return EmailScheduler(
+            sender_mail=settings.SENDER_MAIL,
+            smtp_app_password=settings.SMTP_APP_PASSWORD,
+            server=smtplib.SMTP(*settings.SMTP_URL),
+            user_repository=container.resolve(IUserRepository),
+        )
+
     # Services
     container.register(
         IOTPService, factory=init_redis_otp_service, scope=Scope.singleton
@@ -87,6 +98,7 @@ def _init_container() -> Container:
             init_smtplib_sender_service(),
         ),
     )
+    container.register(IScheduler, factory=init_email_scheduler, scope=Scope.singleton)
 
     # Repositories
     container.register(

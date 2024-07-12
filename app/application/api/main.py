@@ -3,7 +3,9 @@ from fastapi import FastAPI
 
 from application.api.lifespan import (
     close_message_broker,
+    close_scheduler,
     init_message_broker,
+    init_scheduler,
 )
 
 from application.api.healthcheck import healthcheck_router
@@ -14,7 +16,9 @@ from application.api.users.routers import auth_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_message_broker()
+    await init_scheduler()
     yield
+    await close_scheduler()
     await close_message_broker()
 
 

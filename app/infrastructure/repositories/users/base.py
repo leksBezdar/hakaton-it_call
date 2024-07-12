@@ -20,6 +20,9 @@ class IUserRepository(ABC):
     async def get_existing_usernames(self) -> list[Username]: ...
 
     @abstractmethod
+    async def get_all_subscribed(self) -> list[UserEntity]: ...
+
+    @abstractmethod
     async def check_user_exists_by_email_and_username(
         self, email: str, username: str
     ) -> bool: ...

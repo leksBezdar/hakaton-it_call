@@ -48,6 +48,16 @@ class SqlAlchemyUserRepository(IUserRepository, ISqlalchemyRepository):
                 return convert_user_model_to_entity(user)
 
     @exception_mapper
+    async def get_all_subscribed(self) -> list[UserEntity]:
+        async with self.get_session() as session:
+            result = await session.execute(
+                select(self._model).filter_by(is_subscribed=True)
+            )
+            users = result.scalars().all()
+
+            return [convert_user_model_to_entity(user) for user in users]
+
+    @exception_mapper
     async def get_all(
         self, filters: GetUsersFilters
     ) -> tuple[Iterable[UserEntity], int]:
