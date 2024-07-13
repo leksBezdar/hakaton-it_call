@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from domain.entities.users import UserEntity
-from domain.values.users import UserEmail, Username
+from domain.values.users import UserEmail, UserTimezone, Username
 from infrastructure.repositories.users.base import (
     IUserRepository,
 )
@@ -19,6 +19,7 @@ from logic.exceptions.users import (
 class CreateUserCommand(BaseCommand):
     username: str
     email: str
+    user_timezone: str
     is_subscribed: bool
 
 
@@ -29,6 +30,7 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
     async def handle(self, command: CreateUserCommand) -> UserEntity:
         username = Username(value=command.username)
         email = UserEmail(value=command.email)
+        user_timezone = UserTimezone(value=command.user_timezone)
 
         # TODO move existing check to entity layer
         if await self.user_repository.check_user_exists_by_email_and_username(
@@ -39,6 +41,7 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
         new_user = await UserEntity.create(
             username=username,
             email=email,
+            user_timezone=user_timezone,
             is_subscribed=command.is_subscribed,
         )
 

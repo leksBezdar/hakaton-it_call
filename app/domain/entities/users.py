@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 
 from domain.entities.base import BaseEntity
 from domain.exceptions.users import UserAlreadyDeleted, UserNotDeleted
-from domain.values.users import Username, UserEmail
+from domain.values.users import UserTimezone, Username, UserEmail
 from domain.events.users import (
     RestoreUserEvent,
     UserChangedUsernameEvent,
@@ -19,6 +19,7 @@ from domain.events.users import (
 class UserEntity(BaseEntity):
     email: UserEmail
     username: Username
+    user_timezone: UserTimezone = field(default="Etc/GMT+3")
     is_subscribed: bool = field(default=False, kw_only=True)
     is_deleted: bool = field(default=False, kw_only=True)
     updated_at: datetime = field(
@@ -31,17 +32,20 @@ class UserEntity(BaseEntity):
         cls,
         username: Username,
         email: UserEmail,
+        user_timezone: UserTimezone,
         is_subscribed: bool,
     ) -> "UserEntity":
         new_user = cls(
             email=email,
             username=username,
+            user_timezone=user_timezone,
             is_subscribed=is_subscribed,
         )
         new_user.register_event(
             UserCreatedEvent(
                 username=new_user.username.as_generic_type(),
                 email=new_user.email.as_generic_type(),
+                user_timezone=new_user.user_timezone.as_generic_type(),
                 user_oid=new_user.oid,
                 is_subscribed=new_user.is_subscribed,
             )

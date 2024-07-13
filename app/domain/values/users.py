@@ -3,8 +3,10 @@ import re
 
 from domain.exceptions.users import (
     EmptyEmail,
+    EmptyTimezone,
     EmptyUsername,
     InvalidEmailFormat,
+    InvalidTimezone,
     InvalidUsernameCharacters,
     InvalidUsernameLength,
 )
@@ -44,6 +46,21 @@ class UserEmail(BaseValueObject):
 
         if not re.match(r"^\S+@\S+\.\S+$", self.value):
             raise InvalidEmailFormat(self.value)
+
+    def as_generic_type(self):
+        return str(self.value)
+
+
+@dataclass
+class UserTimezone(BaseValueObject):
+    value: str
+
+    def validate(self):
+        if not self.value:
+            raise EmptyTimezone()
+
+        if not re.match(r"^Etc/GMT[\+-]\d+$", self.value):
+            raise InvalidTimezone(self.value)
 
     def as_generic_type(self):
         return str(self.value)

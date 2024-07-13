@@ -12,6 +12,7 @@ class UserCreatedEvent(BaseEvent):
     username: str
     user_oid: str
     email: str
+    user_timezone: str
     is_subscribed: bool
 
 

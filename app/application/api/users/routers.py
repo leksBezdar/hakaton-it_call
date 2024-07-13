@@ -58,6 +58,7 @@ async def create_user(
             CreateUserCommand(
                 email=user_in.email,
                 username=user_in.username,
+                user_timezone=user_in.user_timezone,
                 is_subscribed=user_in.is_subscribed,
             )
         )

@@ -1,14 +1,28 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+import re
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from pytz import all_timezones
 
 from application.api.schemas import SBaseQueryResponse
 from domain.entities.users import UserEntity
 
 
+etc_timezones = [tz for tz in all_timezones if re.match(r"^Etc/GMT[\+-]\d+$", tz)]
+
+
 class SCreateUserIn(BaseModel):
     email: EmailStr
     username: str
+    user_timezone: str = Field(default="Etc/GMT+3")
     is_subscribed: bool = False
+
+    @field_validator("user_timezone")
+    def validate_timezone(cls, v):
+        if v not in etc_timezones:
+            raise ValueError(
+                f"Часовой пояс должен быть одним из перечисленных: {etc_timezones}"
+            )
+        return v
 
 
 class SCreateUserOut(BaseModel):

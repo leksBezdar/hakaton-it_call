@@ -60,3 +60,19 @@ class UserNotDeleted(ApplicationException):
     @property
     def message(self) -> str:
         return f"User with id {self.value} has not been deleted"
+
+
+@dataclass(eq=False)
+class EmptyTimezone(ApplicationException):
+    @property
+    def message(self) -> str:
+        return "User timezone is empty"
+
+
+@dataclass(eq=False)
+class InvalidTimezone(ApplicationException):
+    value: str
+
+    @property
+    def message(self) -> str:
+        return f"The provided timezone is invalid: {self.value}"
