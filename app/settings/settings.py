@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     KAFKA_URL: str = Field(default="kafka:29092")
 
     CONFIRM_URL: str = Field(default="http://0.0.0.0:8000/auth/confirm/")
+    MAIN_PAGE_URL: str = Field(default="http://0.0.0.0:8000/docs")
 
     SENDER_MAIL: str
     SMTP_APP_PASSWORD: str

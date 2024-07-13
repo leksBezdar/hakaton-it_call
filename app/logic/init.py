@@ -1,5 +1,4 @@
 from functools import lru_cache
-import smtplib
 from uuid import uuid4
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from punq import Container, Scope
@@ -10,14 +9,14 @@ from infrastructure.message_brokers.base import IMessageBroker
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.repositories.users.sqlalchemy import SqlAlchemyUserRepository
-from infrastructure.scheduler.base import IScheduler
-from infrastructure.scheduler.scheduler import EmailScheduler
+from infrastructure.services.smtp.scheduler.base import IScheduler
+from infrastructure.services.smtp.scheduler.scheduler import EmailScheduler
 from infrastructure.services.otps.base import IOTPService
 from infrastructure.services.otps.redis import RedisOTPService
-from infrastructure.services.senders.base import ISenderService
-from infrastructure.services.senders.composed import ComposedSenderService
-from infrastructure.services.senders.dummy import DummySenderService
-from infrastructure.services.senders.smtp import EmailSenderService
+from infrastructure.services.smtp.senders.base import ISenderService
+from infrastructure.services.smtp.senders.composed import ComposedSenderService
+from infrastructure.services.smtp.senders.dummy import DummySenderService
+from infrastructure.services.smtp.senders.smtp import EmailSenderService
 from logic.commands.users import (
     ChangeUsernameCommand,
     ChangeUsernameCommandHandler,
@@ -82,7 +81,8 @@ def _init_container() -> Container:
         return EmailScheduler(
             sender_mail=settings.SENDER_MAIL,
             smtp_app_password=settings.SMTP_APP_PASSWORD,
-            server=smtplib.SMTP(*settings.SMTP_URL),
+            smtp_url=settings.SMTP_URL,
+            main_page_url=settings.MAIN_PAGE_URL,
             user_repository=container.resolve(IUserRepository),
         )
 

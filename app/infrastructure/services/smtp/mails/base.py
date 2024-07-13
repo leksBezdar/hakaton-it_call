@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 
-class IOTPMessage(ABC):
+@dataclass
+class IMessage(ABC):
     @property
     @abstractmethod
     def subject(self) -> str: ...

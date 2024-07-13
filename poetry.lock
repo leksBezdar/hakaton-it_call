@@ -1048,6 +1048,21 @@ files = [
 tests = ["pytest"]
 
 [[package]]
+name = "py3-validate-email"
+version = "1.0.5.post2"
+description = "Email validator with regex, blacklisted domains and SMTP checking."
+optional = false
+python-versions = "*"
+files = [
+    {file = "py3_validate_email-1.0.5.post2-py3-none-any.whl", hash = "sha256:5305f657451d4719471439fa153918b47fd8c350bba0828ebbbe6c4e8207ad48"},
+]
+
+[package.dependencies]
+dnspython = ">=2.1,<3.0"
+filelock = ">=3.0,<4.0"
+idna = ">=3.0,<4.0"
+
+[[package]]
 name = "pydantic"
 version = "2.8.0"
 description = "Data validation using Python type hints"
@@ -2021,4 +2036,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "2250ddac4ac024c407d75345775c6d1160827ba4ad5c41552a86ff8e0ccc57dd"
+content-hash = "f395aabbc1d3c9e35a67fa36021addaba5d63d30a2d25ec8da6f9864c3361d6c"

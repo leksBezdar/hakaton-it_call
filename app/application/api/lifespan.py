@@ -1,5 +1,5 @@
 from infrastructure.message_brokers.base import IMessageBroker
-from infrastructure.scheduler.base import IScheduler
+from infrastructure.services.smtp.scheduler.base import IScheduler
 from logic.init import init_container
 
 

@@ -33,3 +33,12 @@ class UsernameAlreadyExistsException(LogicException):
     @property
     def message(self) -> str:
         return f"User with username {self.value} already exists"
+
+
+@dataclass(eq=False)
+class IncorrectEmailAddress(LogicException):
+    value: str
+
+    @property
+    def message(self) -> str:
+        return f"This email address does not exist {self.value}"

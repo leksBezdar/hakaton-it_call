@@ -28,11 +28,11 @@ class RedisOTPService(IOTPService, IRedisClient):
         if cached_otp is None:
             raise OTPWasNotFoundException(otp=otp)
 
-        deotpd_cached_otp = cached_otp.decode("utf-8")
-        if deotpd_cached_otp != otp:
+        decoded_cached_otp = cached_otp.decode("utf-8")
+        if decoded_cached_otp != otp:
             raise OTPsAreNotEqualException(
                 otp=otp,
-                cached_otp=deotpd_cached_otp,
+                cached_otp=decoded_cached_otp,
                 user_email=user_email,
             )
 

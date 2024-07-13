@@ -6,13 +6,15 @@ from infrastructure.repositories.users.base import (
     IUserRepository,
 )
 from infrastructure.services.otps.base import IOTPService
-from infrastructure.services.senders.base import ISenderService
+from infrastructure.services.smtp.senders.base import ISenderService
 from logic.commands.base import BaseCommand, CommandHandler
 from logic.exceptions.users import (
+    IncorrectEmailAddress,
     UserAlreadyExistsException,
     UserNotFoundException,
     UsernameAlreadyExistsException,
 )
+from validate_email import validate_email
 
 
 @dataclass(frozen=True)
@@ -28,6 +30,9 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
     user_repository: IUserRepository
 
     async def handle(self, command: CreateUserCommand) -> UserEntity:
+        if not self.check_if_email_valid(email=command.email):
+            raise IncorrectEmailAddress(command.email)
+
         username = Username(value=command.username)
         email = UserEmail(value=command.email)
         user_timezone = UserTimezone(value=command.user_timezone)
@@ -49,6 +54,9 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
         await self._mediator.publish(new_user.pull_events())
 
         return new_user
+
+    def check_if_email_valid(self, email: str) -> bool:
+        return validate_email(email_address=email)
 
 
 @dataclass(frozen=True)

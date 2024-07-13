@@ -1,19 +1,19 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from infrastructure.services.senders.mails.base import IOTPMessage
+from infrastructure.services.smtp.mails.base import IMessage
 from domain.entities.users import UserEntity
 
 
 @dataclass
-class OTPMessage(IOTPMessage):
+class ReminderMessage(IMessage):
     user: UserEntity
-    otp: str
-    confirm_url: str
+    main_page_url: str
+    unsubscribe_url: str
 
     @property
     def subject(self) -> str:
-        return "Подтверждение одноразового пароля для сайта it-call"
+        return "Ежедневное напоминание"
 
     @property
     def body(self) -> str:
@@ -75,27 +75,16 @@ class OTPMessage(IOTPMessage):
                         <div class="content">
                             <p>Здравствуйте, {self.user.username.as_generic_type()}!</p>
                             <p>
-                                Это письмо является подтверждением с
-                                одноразовым паролем для авторизации на сайте it-call.
+                                Это ваше ежедневное напоминание о новых доступных и
+                                пропущенных рекомендациях.
                             </p>
-                            <p>Для завершения входа, перейдите по ссылке ниже:</p>
-                            <p><a href="{self.confirm_url}?otp={self.otp}" class="button">Подтвердить вход</a></p>
-                            <p>
-                                <strong>
-                                    Никому не сообщайте или не показывайте
-                                    одноразовый пароль для вашей безопасности.
-                                </strong>
-                            </p>
-                            <p>
-                                <strong>
-                                    Перейти по прямой ссылке:
-                                    <a href="{self.confirm_url}?otp={self.otp}">{self.confirm_url}?otp={self.otp}</a>
-                                </strong>
-                            </p>
+                            <p>Чтобы просмотреть все рекомендации, перейдите по ссылке ниже:</p>
+                            <p><a href="{self.main_page_url}" class="button">Просмотреть рекомендации</a></p>
                         </div>
                         <div class="footer">
-                            <p>С уважением, команда it-call. Время отправки кода: {current_datetime}</p>
+                            <p>С уважением, команда it-call. Время отправки письма: {current_datetime}</p>
                             <p>© {datetime.now().year} it-call. Все права защищены.</p>
+                            <p><a href="{self.unsubscribe_url}">Отписаться от рассылки</a></p>
                         </div>
                     </div>
                 </body>

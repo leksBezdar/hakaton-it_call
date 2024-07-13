@@ -5,33 +5,25 @@ import smtplib
 
 from domain.entities.users import UserEntity
 from infrastructure.exceptions.senders import (
-    SMTPAuthenticationException,
     SMTPDataError,
-    SMTPException,
     SMTPRecipientsRefused,
     SMTPSenderRefused,
 )
-from infrastructure.services.senders.base import ISenderService
-from infrastructure.services.senders.mails.otps import OTPMessage
+from infrastructure.services.smtp.gmail import GmailSMTPClient
+from infrastructure.services.smtp.mails.base import IMessage
+from infrastructure.services.smtp.senders.base import ISenderService
+from infrastructure.services.smtp.mails.otps import OTPMessage
 
 
 @dataclass
-class EmailSenderService(ISenderService):
-    sender_mail: str
-    smtp_app_password: str
+class EmailSenderService(ISenderService, GmailSMTPClient):
     smtp_url: tuple[str, int]
     confirm_url: str
 
-    def login(self, server: smtplib.SMTP) -> None:
-        try:
-            server.login(self.sender_mail, self.smtp_app_password)
-        except smtplib.SMTPAuthenticationError:
-            raise SMTPAuthenticationException
-        except smtplib.SMTPException:
-            raise SMTPException
-
     def build_message(self, user: UserEntity, otp: str) -> MIMEMultipart:
-        otp_message = OTPMessage(user=user, otp=otp, confirm_url=self.confirm_url)
+        otp_message: IMessage = OTPMessage(
+            user=user, otp=otp, confirm_url=self.confirm_url
+        )
 
         msg = MIMEMultipart("alternative")
         msg["From"] = self.sender_mail

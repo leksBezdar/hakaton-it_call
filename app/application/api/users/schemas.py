@@ -7,6 +7,7 @@ from application.api.schemas import SBaseQueryResponse
 from domain.entities.users import UserEntity
 
 
+# All timezones with Etc/GMT
 etc_timezones = [tz for tz in all_timezones if re.match(r"^Etc/GMT[\+-]\d+$", tz)]
 
 

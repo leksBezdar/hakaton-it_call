@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from domain.entities.users import UserEntity
-from infrastructure.services.senders.base import ISenderService
+from infrastructure.services.smtp.senders.base import ISenderService
 
 
 @dataclass

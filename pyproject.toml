@@ -16,6 +16,7 @@ asyncpg = "^0.29.0"
 ipython = "^8.26.0"
 redis = "^5.0.7"
 apscheduler = "^3.10.4"
+py3-validate-email = "^1.0.5.post2"
 
 
 [tool.poetry.group.lint.dependencies]
