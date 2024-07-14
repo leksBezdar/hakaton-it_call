@@ -17,6 +17,8 @@ ipython = "^8.26.0"
 redis = "^5.0.7"
 apscheduler = "^3.10.4"
 py3-validate-email = "^1.0.5.post2"
+aiosmtplib = "^3.0.1"
+types-pytz = "^2024.1.0.20240417"
 
 
 [tool.poetry.group.lint.dependencies]

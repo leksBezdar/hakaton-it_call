@@ -8,7 +8,7 @@ from settings.settings import settings
 metadata = MetaData(naming_convention=DB_NAMING_CONVENTION)
 
 
-async_engine = create_async_engine(settings.DB_URL, echo=True)
+async_engine = create_async_engine(settings.DB_URL, echo=False)
 test_async_engine = create_async_engine(settings.TEST_DB_URL)
 
 

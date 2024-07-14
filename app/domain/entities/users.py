@@ -10,8 +10,8 @@ from domain.events.users import (
     UserConfirmedLoginEvent,
     UserCreatedEvent,
     UserDeletedEvent,
-    UserSubscribedToEmailSenderEvent,
-    UserUnsubscribedFromEmailSenderEvent,
+    UserSubscribedEvent,
+    UserUnsubscribedEvent,
 )
 
 
@@ -70,10 +70,11 @@ class UserEntity(BaseEntity):
         self.is_subscribed = True
 
         self.register_event(
-            UserSubscribedToEmailSenderEvent(
+            UserSubscribedEvent(
                 user_oid=self.oid,
                 username=self.username.as_generic_type(),
                 email=self.email.as_generic_type(),
+                user_timezone=self.user_timezone.as_generic_type(),
             )
         )
 
@@ -82,7 +83,7 @@ class UserEntity(BaseEntity):
         self.is_subscribed = False
 
         self.register_event(
-            UserUnsubscribedFromEmailSenderEvent(
+            UserUnsubscribedEvent(
                 user_oid=self.oid,
                 username=self.username.as_generic_type(),
                 email=self.email.as_generic_type(),

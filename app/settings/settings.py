@@ -18,9 +18,12 @@ class Settings(BaseSettings):
     TEST_DB_PORT: int
 
     KAFKA_URL: str = Field(default="kafka:29092")
+    user_subscribed_event_topic: str = Field(default="user_subscribed_topic")
+    user_unsubscribed_event_topic: str = Field(default="user_unsubscribed_topic")
 
     CONFIRM_URL: str = Field(default="http://0.0.0.0:8000/auth/confirm/")
     MAIN_PAGE_URL: str = Field(default="http://0.0.0.0:8000/docs")
+    SEND_TIME: str = Field(default="12:00")
 
     SENDER_MAIL: str
     SMTP_APP_PASSWORD: str

@@ -5,6 +5,7 @@ from punq import Container, Scope
 import redis  # type: ignore
 
 
+from domain.events.users import UserSubscribedEvent, UserUnsubscribedEvent
 from infrastructure.message_brokers.base import IMessageBroker
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from infrastructure.repositories.users.base import IUserRepository
@@ -35,6 +36,7 @@ from logic.commands.users import (
     UserLoginCommand,
     UserLoginCommandHandler,
 )
+from logic.events.users import UserSubscribedEventHandler, UserUnsubscribedEventHandler
 from logic.mediator.base import Mediator
 from logic.mediator.event import EventMediator
 
@@ -79,6 +81,8 @@ def _init_container() -> Container:
 
     def init_email_scheduler() -> EmailScheduler:
         return EmailScheduler(
+            settings=settings,
+            message_broker=container.resolve(IMessageBroker),
             sender_mail=settings.SENDER_MAIL,
             smtp_app_password=settings.SMTP_APP_PASSWORD,
             smtp_url=settings.SMTP_URL,
@@ -206,6 +210,24 @@ def _init_container() -> Container:
         mediator.register_command(
             DeleteUserCommand,
             [delete_user_handler],
+        )
+
+        # Event Handlers
+        user_subscribed_event_handler = UserSubscribedEventHandler(
+            broker_topic=settings.user_subscribed_event_topic,
+            message_broker=container.resolve(IMessageBroker),
+        )
+        user_unsubscribed_event_handler = UserUnsubscribedEventHandler(
+            broker_topic=settings.user_unsubscribed_event_topic,
+            message_broker=container.resolve(IMessageBroker),
+        )
+        mediator.register_event(
+            UserSubscribedEvent,
+            [user_subscribed_event_handler],
+        )
+        mediator.register_event(
+            UserUnsubscribedEvent,
+            [user_unsubscribed_event_handler],
         )
 
         # Query Handlers

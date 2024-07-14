@@ -133,7 +133,7 @@ async def get_all_users(
     container: Annotated[Container, Depends(init_container)],
     filters: GetUsersFilters = Depends(),
 ) -> SGetUsersQueryResponse:
-    """Get all users from specified group."""
+    """Get all users."""
     mediator: Mediator = container.resolve(Mediator)
 
     try:

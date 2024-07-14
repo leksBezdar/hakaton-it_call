@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 import re
 
+from pytz import timezone
+from pytz.tzinfo import DstTzInfo
+
 from domain.exceptions.users import (
     EmptyEmail,
     EmptyTimezone,
@@ -64,3 +67,6 @@ class UserTimezone(BaseValueObject):
 
     def as_generic_type(self):
         return str(self.value)
+
+    def as_timezone_type(self) -> DstTzInfo:
+        return timezone(zone=self.value)

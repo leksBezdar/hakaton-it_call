@@ -1,29 +1,47 @@
 from dataclasses import dataclass
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import smtplib
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from email.mime.text import MIMEText
+from apscheduler.triggers.cron import CronTrigger
+from datetime import datetime
+import orjson
+from pytz import utc
 
 from domain.entities.users import UserEntity
+from domain.values.users import UserEmail, UserTimezone, Username
+from infrastructure.exceptions.senders import (
+    SMTPDataError,
+    SMTPRecipientsRefused,
+    SMTPSenderRefused,
+)
 from infrastructure.repositories.users.base import IUserRepository
 from infrastructure.services.smtp.gmail import GmailSMTPClient
 from infrastructure.services.smtp.mails.base import IMessage
 from infrastructure.services.smtp.mails.reminders import ReminderMessage
 from infrastructure.services.smtp.scheduler.base import IScheduler
+from infrastructure.message_brokers.kafka import KafkaMessageBroker
+from settings.settings import Settings
 
 
-# TODO: replace smtplib with aiosmtplib
+# TODO: replace with aiosmptlib implementation
 @dataclass
 class EmailScheduler(IScheduler, GmailSMTPClient):
+    settings: Settings
     main_page_url: str
     user_repository: IUserRepository
+    message_broker: KafkaMessageBroker
+    user_jobs: dict[str, str] = None
+
+    def __post_init__(self):
+        self.user_jobs = {}
 
     def build_message(self, user: UserEntity) -> MIMEMultipart:
-        # TODO: move url to settings; Use di
-        unsubcribe_url: str = f"http://0.0.0.0:8000/users/{user.oid}/unsubscribe/"
+        # TODO: move out url to .env; use di
+        unsubscribe_url: str = f"http://0.0.0.0:8000/users/{user.oid}/unsubscribe/"
         reminder_message: IMessage = ReminderMessage(
             user=user,
-            unsubscribe_url=unsubcribe_url,
+            unsubscribe_url=unsubscribe_url,
             main_page_url=self.main_page_url,
         )
 
@@ -31,12 +49,10 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
         msg["From"] = self.sender_mail
         msg["To"] = user.email.as_generic_type()
         msg["Subject"] = reminder_message.subject
-
         msg.attach(MIMEText(reminder_message.body, "html"))
 
         return msg
 
-    # TODO: Replace with the real letter implementation; Decompose methods
     def send_reminder(self, user: UserEntity):
         with smtplib.SMTP(*self.smtp_url) as server:
             server.starttls()
@@ -51,22 +67,77 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
                     msg=msg.as_string(),
                 )
             except smtplib.SMTPRecipientsRefused:
-                raise smtplib.SMTPRecipientsRefused
+                raise SMTPRecipientsRefused
             except smtplib.SMTPSenderRefused:
-                raise smtplib.SMTPSenderRefused
+                raise SMTPSenderRefused
             except smtplib.SMTPDataError:
-                raise smtplib.SMTPDataError
+                raise SMTPDataError
 
-    async def send_daily_reminder(self):
-        users = await self.user_repository.get_all_subscribed()
+    # TODO: Decompose function
+    def schedule_user_reminders(self, users: list[UserEntity]):
         for user in users:
-            self.send_reminder(user)
+            send_time = datetime.strptime(self.settings.SEND_TIME, "%H:%M")
+            send_time_utc = utc.localize(send_time)
+            user_tz = user.user_timezone.as_timezone_type()
+
+            utc_time = send_time_utc + user_tz.utcoffset(send_time_utc)
+
+            job = self.scheduler.add_job(
+                self.send_reminder,
+                trigger=CronTrigger(
+                    hour=utc_time.hour,
+                    minute=utc_time.minute,
+                    timezone=utc,
+                ),
+                args=[user],
+            )
+            self.user_jobs[user.oid] = job.id
+
+    # TODO: add debug mode
+    def print_scheduled_jobs(self):
+        for job in self.scheduler.get_jobs():
+            print(
+                f"Job ID: {job.id},"
+                f"Next Run Time: {job.next_run_time},"
+                f"Args: {job.args},"
+                f"Trigger: {job.trigger},"
+                f"Timezone: {job.trigger.timezone}"
+            )
+
+    # TODO: Use existing conventers
+    async def consume_user_subscribed_event(self):
+        self.message_broker.consumer.subscribe(
+            topics=[self.settings.user_subscribed_event_topic]
+        )
+        async for message in self.message_broker.consumer:
+            message = orjson.loads(message.value)
+            user_data = UserEntity(
+                oid=message["user_oid"],
+                email=UserEmail(value=message["email"]),
+                username=Username(value=message["username"]),
+                user_timezone=UserTimezone(value=message["user_timezone"]),
+                is_subscribed=True,
+            )
+            self.schedule_user_reminders([user_data])
+
+    async def consume_user_unsubscribed_event(self):
+        self.message_broker.consumer.subscribe(
+            topics=[self.settings.user_unsubscribed_event_topic]
+        )
+        async for message in self.message_broker.consumer:
+            message = orjson.loads(message.value)
+            user_oid = message["user_oid"]
+            if user_oid in self.user_jobs:
+                self.scheduler.remove_job(self.user_jobs[user_oid])
+                del self.user_jobs[user_oid]
 
     async def start(self):
         self.scheduler = AsyncIOScheduler()
-        # TODO: move time mark to .env; Bind tz to user tz
-        self.scheduler.add_job(self.send_daily_reminder, "cron", hour=17, minute=35)
+        users = await self.user_repository.get_all_subscribed()
+        self.schedule_user_reminders(users)
         self.scheduler.start()
+        self.scheduler.add_job(self.consume_user_unsubscribed_event)
+        self.scheduler.add_job(self.consume_user_subscribed_event)
 
     async def stop(self):
         self.scheduler.shutdown()

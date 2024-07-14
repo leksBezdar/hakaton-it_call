@@ -35,16 +35,17 @@ class UserConfirmedLoginEvent(BaseEvent):
 
 
 @dataclass
-class UserSubscribedToEmailSenderEvent(BaseEvent):
+class UserSubscribedEvent(BaseEvent):
     title: ClassVar[str] = "User Subscribed to Email Sender"
 
     user_oid: str
     username: str
     email: str
+    user_timezone: str
 
 
 @dataclass
-class UserUnsubscribedFromEmailSenderEvent(BaseEvent):
+class UserUnsubscribedEvent(BaseEvent):
     title: ClassVar[str] = "User Unsubscribed from Email Sender"
 
     user_oid: str
