@@ -97,7 +97,7 @@ async def login(
     "/confirm/",
     status_code=status.HTTP_200_OK,
     responses={
-        status.HTTP_200_OK: {"model": SLoginOut},
+        status.HTTP_200_OK: {"model": SConfirmOut},
         status.HTTP_400_BAD_REQUEST: {"model": SErrorMessage},
     },
 )
