@@ -49,5 +49,8 @@ class Settings(BaseSettings):
             f"{self.TEST_DB_PORT}/{self.TEST_DB_NAME}"
         )
 
+    ALLOWED_CORS_ORIGINS: list[str] = Field(default=["*"])
+    ALLOWED_CORS_ORIGIN_REGEX: str
+
 
 settings = Settings()
