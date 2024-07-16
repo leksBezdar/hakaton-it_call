@@ -2,7 +2,12 @@ from dataclasses import field, dataclass
 from datetime import UTC, datetime
 
 from domain.entities.base import BaseEntity
-from domain.exceptions.users import UserAlreadyDeleted, UserNotDeleted
+from domain.exceptions.users import (
+    UserAlreadyDeleted,
+    UserAlreadySubscribed,
+    UserIsNotSubscribed,
+    UserNotDeleted,
+)
 from domain.values.users import UserTimezone, Username, UserEmail
 from domain.events.users import (
     RestoreUserEvent,
@@ -89,6 +94,7 @@ class UserEntity(BaseEntity):
 
     async def unsubscribe_from_email_sender(self) -> None:
         self._validate_not_deleted()
+        self._validate_not_subscribed()
         self.is_subscribed = False
 
         self.register_event(
@@ -135,10 +141,25 @@ class UserEntity(BaseEntity):
                 email=self.email.as_generic_type(),
             )
         )
+        self.register_event(
+            UserUnsubscribedEvent(
+                user_oid=self.oid,
+                username=self.username.as_generic_type(),
+                email=self.email.as_generic_type(),
+            )
+        )
 
     def _validate_not_deleted(self) -> None:
         if self.is_deleted:
             raise UserAlreadyDeleted(self.oid)
+
+    def _validate_not_subscribed(self) -> None:
+        if not self.is_subscribed:
+            raise UserIsNotSubscribed(self.oid)
+
+    def _validate_subscribed(self) -> None:
+        if self.is_subscribed:
+            raise UserAlreadySubscribed(self.oid)
 
     def _validate_deleted(self) -> None:
         if not self.is_deleted:

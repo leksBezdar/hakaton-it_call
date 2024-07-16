@@ -63,6 +63,24 @@ class UserNotDeleted(ApplicationException):
 
 
 @dataclass(eq=False)
+class UserAlreadySubscribed(ApplicationException):
+    value: str
+
+    @property
+    def message(self) -> str:
+        return f"User with id {self.value} is already subscribed to email notifications"
+
+
+@dataclass(eq=False)
+class UserIsNotSubscribed(ApplicationException):
+    value: str
+
+    @property
+    def message(self) -> str:
+        return f"User with id {self.value} is not subscribed to email notifications"
+
+
+@dataclass(eq=False)
 class EmptyTimezone(ApplicationException):
     @property
     def message(self) -> str:

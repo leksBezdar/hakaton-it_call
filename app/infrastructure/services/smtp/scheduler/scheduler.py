@@ -102,7 +102,7 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
                 f"Timezone: {job.trigger.timezone}"
             )
 
-    async def handle_user_subscribed(self, message):
+    async def _handle_user_subscribed(self, message):
         user_data = UserEntity(
             oid=message["user_oid"],
             email=UserEmail(value=message["email"]),
@@ -112,7 +112,7 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
         )
         await self.schedule_user_reminders([user_data])
 
-    async def handle_user_unsubscribed(self, message):
+    async def _handle_user_unsubscribed(self, message: dict) -> None:
         user_oid = message["user_oid"]
         if user_oid in self.user_jobs:
             self.scheduler.remove_job(self.user_jobs[user_oid])
@@ -130,9 +130,9 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
             message = orjson.loads(message.value)
 
             if topic == self.settings.user_subscribed_event_topic:
-                await self.handle_user_subscribed(message)
+                await self._handle_user_subscribed(message)
             elif topic == self.settings.user_unsubscribed_event_topic:
-                await self.handle_user_unsubscribed(message)
+                await self._handle_user_unsubscribed(message)
 
     async def start(self):
         self.scheduler = AsyncIOScheduler()
