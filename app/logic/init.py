@@ -2,7 +2,7 @@ from functools import lru_cache
 from uuid import uuid4
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from punq import Container, Scope
-import redis  # type: ignore
+from redis import asyncio as redis
 
 
 from domain.events.users import UserSubscribedEvent, UserUnsubscribedEvent

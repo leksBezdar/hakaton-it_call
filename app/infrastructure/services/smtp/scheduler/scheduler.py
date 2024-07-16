@@ -4,6 +4,7 @@ from email.mime.text import MIMEText
 import smtplib
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.job import Job
 from datetime import datetime
 import orjson
 from pytz import utc
@@ -37,7 +38,7 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
         self.user_jobs = {}
 
     def build_message(self, user: UserEntity) -> MIMEMultipart:
-        # TODO: move out url to .env; use di
+        # TODO: move out url to .env; use DI
         unsubscribe_url: str = f"http://0.0.0.0:8000/users/{user.oid}/unsubscribe/"
         reminder_message: IMessage = ReminderMessage(
             user=user,
@@ -75,10 +76,12 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
 
     async def schedule_user_reminders(self, users: list[UserEntity]):
         for user in users:
+            # Validate send time format
             send_time = datetime.strptime(self.settings.SEND_TIME, "%H:%M")
             send_time_utc = utc.localize(send_time)
             user_tz = user.user_timezone.as_timezone_type()
 
+            # Get utc based on the user's local time zone
             utc_time = send_time_utc + user_tz.utcoffset(send_time_utc)
 
             job = self.scheduler.add_job(
@@ -94,6 +97,7 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
 
     def print_scheduled_jobs(self):
         for job in self.scheduler.get_jobs():
+            job: Job
             print(
                 f"Job ID: {job.id},"
                 f"Next Run Time: {job.next_run_time},"
@@ -135,9 +139,12 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
                 await self._handle_user_unsubscribed(message)
 
     async def start(self):
+        # Better typization, DI and __init__ breaks it
         self.scheduler = AsyncIOScheduler()
+
         users = await self.user_repository.get_all_subscribed()
         await self.schedule_user_reminders(users)
+
         self.scheduler.start()
         self.scheduler.add_job(self.consume_user_event)
 

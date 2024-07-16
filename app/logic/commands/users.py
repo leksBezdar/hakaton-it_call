@@ -76,7 +76,7 @@ class UserLoginCommandHandler(CommandHandler[UserLoginCommand, None]):
         if not user:
             raise UserNotFoundException(value=command.email)
 
-        otp = self.otp_service.generate_otp(user=user)
+        otp = await self.otp_service.generate_otp(user=user)
         self.sender_service.send_otp(user=user, otp=otp)
 
 
@@ -99,7 +99,7 @@ class UserConfirmLoginCommandHandler(
         if not user:
             raise UserNotFoundException(value=command.email)
 
-        self.otp_service.validate(otp=command.otp, user=user)
+        await self.otp_service.validate(otp=command.otp, user=user)
         await user.confirm_login()
         await self._mediator.publish(user.pull_events())
 
