@@ -50,6 +50,15 @@ class UserEntity(BaseEntity):
                 is_subscribed=new_user.is_subscribed,
             )
         )
+        if new_user.is_subscribed:
+            new_user.register_event(
+                UserSubscribedEvent(
+                    user_oid=new_user.oid,
+                    username=new_user.username.as_generic_type(),
+                    email=new_user.email.as_generic_type(),
+                    user_timezone=new_user.user_timezone.as_generic_type(),
+                )
+            )
         return new_user
 
     async def change_username(self, new_username: Username) -> None:

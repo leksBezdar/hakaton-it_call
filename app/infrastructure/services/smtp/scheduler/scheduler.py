@@ -73,8 +73,7 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
             except smtplib.SMTPDataError:
                 raise SMTPDataError
 
-    # TODO: Decompose function
-    def schedule_user_reminders(self, users: list[UserEntity]):
+    async def schedule_user_reminders(self, users: list[UserEntity]):
         for user in users:
             send_time = datetime.strptime(self.settings.SEND_TIME, "%H:%M")
             send_time_utc = utc.localize(send_time)
@@ -93,7 +92,6 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
             )
             self.user_jobs[user.oid] = job.id
 
-    # TODO: add debug mode
     def print_scheduled_jobs(self):
         for job in self.scheduler.get_jobs():
             print(
@@ -104,40 +102,44 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
                 f"Timezone: {job.trigger.timezone}"
             )
 
-    # TODO: Use existing conventers
-    async def consume_user_subscribed_event(self):
-        self.message_broker.consumer.subscribe(
-            topics=[self.settings.user_subscribed_event_topic]
+    async def handle_user_subscribed(self, message):
+        user_data = UserEntity(
+            oid=message["user_oid"],
+            email=UserEmail(value=message["email"]),
+            username=Username(value=message["username"]),
+            user_timezone=UserTimezone(value=message["user_timezone"]),
+            is_subscribed=True,
         )
-        async for message in self.message_broker.consumer:
-            message = orjson.loads(message.value)
-            user_data = UserEntity(
-                oid=message["user_oid"],
-                email=UserEmail(value=message["email"]),
-                username=Username(value=message["username"]),
-                user_timezone=UserTimezone(value=message["user_timezone"]),
-                is_subscribed=True,
-            )
-            self.schedule_user_reminders([user_data])
+        await self.schedule_user_reminders([user_data])
 
-    async def consume_user_unsubscribed_event(self):
+    async def handle_user_unsubscribed(self, message):
+        user_oid = message["user_oid"]
+        if user_oid in self.user_jobs:
+            self.scheduler.remove_job(self.user_jobs[user_oid])
+            del self.user_jobs[user_oid]
+
+    async def consume_user_event(self) -> None:
         self.message_broker.consumer.subscribe(
-            topics=[self.settings.user_unsubscribed_event_topic]
+            topics=[
+                self.settings.user_subscribed_event_topic,
+                self.settings.user_unsubscribed_event_topic,
+            ]
         )
         async for message in self.message_broker.consumer:
+            topic = message.topic
             message = orjson.loads(message.value)
-            user_oid = message["user_oid"]
-            if user_oid in self.user_jobs:
-                self.scheduler.remove_job(self.user_jobs[user_oid])
-                del self.user_jobs[user_oid]
+
+            if topic == self.settings.user_subscribed_event_topic:
+                await self.handle_user_subscribed(message)
+            elif topic == self.settings.user_unsubscribed_event_topic:
+                await self.handle_user_unsubscribed(message)
 
     async def start(self):
         self.scheduler = AsyncIOScheduler()
         users = await self.user_repository.get_all_subscribed()
-        self.schedule_user_reminders(users)
+        await self.schedule_user_reminders(users)
         self.scheduler.start()
-        self.scheduler.add_job(self.consume_user_unsubscribed_event)
-        self.scheduler.add_job(self.consume_user_subscribed_event)
+        self.scheduler.add_job(self.consume_user_event)
 
     async def stop(self):
         self.scheduler.shutdown()
