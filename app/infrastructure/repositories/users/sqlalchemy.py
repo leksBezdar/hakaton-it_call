@@ -5,7 +5,7 @@ from typing import Iterable
 from sqlalchemy import Select, func, or_, select
 
 from domain.entities.users import UserEntity
-from infrastructure.exception_mapper import exception_mapper
+from infrastructure.repositories.common.exception_mapper import exception_mapper
 from infrastructure.models.users import UserModel
 from infrastructure.repositories.common.repository import ISqlalchemyRepository
 from infrastructure.repositories.users.base import (
