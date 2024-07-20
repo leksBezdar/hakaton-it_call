@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+
 from infrastructure.services.smtp.mails.base import IMessage
 from domain.entities.users import UserEntity
 
@@ -17,7 +18,9 @@ class ReminderMessage(IMessage):
 
     @property
     def body(self) -> str:
-        current_datetime = datetime.now().strftime("%d.%m.%Y %H:%M")
+        current_datetime = datetime.now(
+            self.user.user_timezone.as_timezone_type()
+        ).strftime("%d.%m.%Y %H:%M")
 
         body = f"""
             <html>

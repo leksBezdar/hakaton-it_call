@@ -82,8 +82,7 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
             user_tz = user.user_timezone.as_timezone_type()
 
             # Get utc based on the user's local time zone
-            utc_time = send_time_utc + user_tz.utcoffset(send_time_utc)
-
+            utc_time = send_time_utc - user_tz.utcoffset(send_time_utc)
             job = self.scheduler.add_job(
                 self.send_reminder,
                 trigger=CronTrigger(
