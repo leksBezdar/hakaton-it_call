@@ -76,12 +76,19 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
     async def schedule_user_reminders(self, users: list[UserEntity]):
         for user in users:
             # Validate send time format
-            send_time = datetime.strptime(self.settings.SEND_TIME, "%H:%M")
-            send_time_utc = utc.localize(send_time)
-            user_tz = user.user_timezone.as_timezone_type()
+            send_time = datetime.strptime(self.settings.SEND_TIME, "%H:%M").time()
+            current_date = datetime.now().date()
+            send_time_with_date = datetime.combine(current_date, send_time)
 
-            # Get utc based on the user's local time zone
-            utc_time = send_time_utc - user_tz.utcoffset(send_time_utc)
+            # Localize send_time_with_date to the user's timezone
+            user_tz = user.user_timezone.as_timezone_type()
+            localized_send_time = user_tz.localize(send_time_with_date)
+
+            # Convert localized send time to UTC
+            utc_time = localized_send_time.astimezone(utc)
+
+            print(utc_time.hour, utc_time.minute)
+
             job = self.scheduler.add_job(
                 self.send_reminder,
                 trigger=CronTrigger(

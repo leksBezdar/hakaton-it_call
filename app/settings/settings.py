@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     CONFIRM_URL: str = Field(default="http://0.0.0.0:8000/auth/confirm/")
     MAIN_PAGE_URL: str = Field(default="http://0.0.0.0:8000/docs")
-    SEND_TIME: str = Field(default="12:20")
+    SEND_TIME: str = Field(default="12:00")
 
     SENDER_MAIL: str
     SMTP_APP_PASSWORD: str

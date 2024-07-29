@@ -55,10 +55,15 @@
 
 ### Запуск проекта
 
-1. Соберите и запустите Docker-контейнеры:
+1. Соберите и запустите Docker-контейнеры через Makefile:
 
     ```sh
     make all
+    ```
+или напрямую через docker-compose:
+    ```sh
+    docker compose -f docker_compose/storages.yaml -f docker_compose/app.yaml -f docker_compose/redis.yaml -f docker_compose/kafka.yaml --env-file .env up --build -d
+
     ```
 
 2. Приложение будет доступно по адресу `http://0.0.0.0:8000`.
