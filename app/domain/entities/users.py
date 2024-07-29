@@ -24,7 +24,7 @@ from domain.events.users import (
 class UserEntity(BaseEntity):
     email: UserEmail
     username: Username
-    user_timezone: UserTimezone = field(default="Etc/GMT+3")
+    user_timezone: UserTimezone
     is_subscribed: bool = field(default=False, kw_only=True)
     is_deleted: bool = field(default=False, kw_only=True)
     updated_at: datetime = field(

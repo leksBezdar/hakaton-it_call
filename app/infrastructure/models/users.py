@@ -13,7 +13,7 @@ class UserModel(Base, BaseIDMixin):
 
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
-    user_timezone: Mapped[str] = mapped_column(nullable=True, default="Etc/GMT+3")
+    user_timezone: Mapped[str] = mapped_column(nullable=True)
 
     is_subscribed: Mapped[bool] = mapped_column(
         default=False, server_default=text("false")

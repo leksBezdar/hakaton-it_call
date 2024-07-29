@@ -25,7 +25,6 @@ from infrastructure.message_brokers.kafka import KafkaMessageBroker
 from settings.settings import Settings
 
 
-# TODO: replace with aiosmptlib implementation
 @dataclass
 class EmailScheduler(IScheduler, GmailSMTPClient):
     settings: Settings

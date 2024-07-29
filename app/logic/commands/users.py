@@ -37,7 +37,6 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, UserEntity]):
         email = UserEmail(value=command.email)
         user_timezone = UserTimezone(value=command.user_timezone)
 
-        # TODO move existing check to entity layer
         if await self.user_repository.check_user_exists_by_email_and_username(
             email=email.as_generic_type(), username=username.as_generic_type()
         ):

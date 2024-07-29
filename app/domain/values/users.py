@@ -9,7 +9,6 @@ from domain.exceptions.users import (
     EmptyTimezone,
     EmptyUsername,
     InvalidEmailFormat,
-    InvalidTimezone,
     InvalidUsernameCharacters,
     InvalidUsernameLength,
 )
@@ -61,9 +60,6 @@ class UserTimezone(BaseValueObject):
     def validate(self):
         if not self.value:
             raise EmptyTimezone()
-
-        if not re.match(r"^Etc/GMT[\+-]\d+$", self.value):
-            raise InvalidTimezone(self.value)
 
     def as_generic_type(self):
         return str(self.value)
