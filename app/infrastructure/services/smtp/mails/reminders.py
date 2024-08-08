@@ -89,7 +89,8 @@ class ReminderMessage(IMessage):
                             <p>© {datetime.now().year} it-call. Все права защищены.</p>
                             <p>
                                 <a href="https://it-kal.vercel.app/unsubscribe/{self.user.oid}">
-                                    Отписаться от рассылки</a>
+                                    Отписаться от рассылки
+                                </a>
                             </p>
                         </div>
                     </div>
