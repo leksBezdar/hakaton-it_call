@@ -82,7 +82,11 @@ class OTPMessage(IMessage):
                                 одноразовым паролем для авторизации на сайте it-call.
                             </p>
                             <p>Для завершения входа, перейдите по ссылке ниже:</p>
-                            <p><a href="{self.confirm_url}?otp={self.otp}" class="button">Подтвердить вход</a></p>
+                            <p>
+                                <a href="https://it-kal.vercel.app/confirm/{self.otp}" class="button">
+                                    Подтвердить вход
+                                </a>
+                            </p>
                             <p>
                                 <strong>
                                     Никому не сообщайте или не показывайте
@@ -91,8 +95,7 @@ class OTPMessage(IMessage):
                             </p>
                             <p>
                                 <strong>
-                                    Перейти по прямой ссылке:
-                                    <a href="{self.confirm_url}?otp={self.otp}">{self.confirm_url}?otp={self.otp}</a>
+                                    Введите пароль на странице авторизации: {self.otp}
                                 </strong>
                             </p>
                         </div>
