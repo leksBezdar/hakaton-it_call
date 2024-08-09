@@ -81,13 +81,16 @@ def _init_container() -> Container:
 
     def init_email_scheduler() -> EmailScheduler:
         return EmailScheduler(
-            settings=settings,
             message_broker=container.resolve(IMessageBroker),
             sender_mail=settings.SENDER_MAIL,
             smtp_app_password=settings.SMTP_APP_PASSWORD,
             smtp_url=settings.SMTP_URL,
             main_page_url=settings.MAIN_PAGE_URL,
+            unsubscribe_url=settings.UNSUBSCRIBE_URL,
             user_repository=container.resolve(IUserRepository),
+            send_time=settings.SEND_TIME,
+            user_subscribed_event_topic=settings.user_subscribed_event_topic,
+            user_unsubscribed_event_topic=settings.user_unsubscribed_event_topic,
         )
 
     # Services

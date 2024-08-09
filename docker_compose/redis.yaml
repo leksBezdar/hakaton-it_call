@@ -5,7 +5,7 @@ services:
     image: redis:6-alpine
     container_name: redis-it_call
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
     networks:
       - it_call_network
 

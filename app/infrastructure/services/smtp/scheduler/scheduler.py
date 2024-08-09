@@ -22,26 +22,26 @@ from infrastructure.services.smtp.mails.base import IMessage
 from infrastructure.services.smtp.mails.reminders import ReminderMessage
 from infrastructure.services.smtp.scheduler.base import IScheduler
 from infrastructure.message_brokers.kafka import KafkaMessageBroker
-from settings.settings import Settings
 
 
 @dataclass
 class EmailScheduler(IScheduler, GmailSMTPClient):
-    settings: Settings
     main_page_url: str
+    unsubscribe_url: str
     user_repository: IUserRepository
     message_broker: KafkaMessageBroker
+    send_time: str
+    user_subscribed_event_topic: str
+    user_unsubscribed_event_topic: str
     user_jobs: dict[str, str] = None
 
     def __post_init__(self):
         self.user_jobs = {}
 
     def build_message(self, user: UserEntity) -> MIMEMultipart:
-        # TODO: move out url to .env; use DI
-        unsubscribe_url: str = f"http://0.0.0.0:8000/users/{user.oid}/unsubscribe/"
         reminder_message: IMessage = ReminderMessage(
             user=user,
-            unsubscribe_url=unsubscribe_url,
+            unsubscribe_url=self.unsubscribe_url,
             main_page_url=self.main_page_url,
         )
 
@@ -76,7 +76,7 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
     async def schedule_user_reminders(self, users: list[UserEntity]):
         for user in users:
             # Validate send time format
-            send_time = datetime.strptime(self.settings.SEND_TIME, "%H:%M").time()
+            send_time = datetime.strptime(self.send_time, "%H:%M").time()
             current_date = datetime.now().date()
             send_time_with_date = datetime.combine(current_date, send_time)
 
@@ -128,17 +128,17 @@ class EmailScheduler(IScheduler, GmailSMTPClient):
     async def consume_user_event(self) -> None:
         self.message_broker.consumer.subscribe(
             topics=[
-                self.settings.user_subscribed_event_topic,
-                self.settings.user_unsubscribed_event_topic,
+                self.user_subscribed_event_topic,
+                self.user_unsubscribed_event_topic,
             ]
         )
         async for message in self.message_broker.consumer:
             topic = message.topic
             message = orjson.loads(message.value)
 
-            if topic == self.settings.user_subscribed_event_topic:
+            if topic == self.user_subscribed_event_topic:
                 await self._handle_user_subscribed(message)
-            elif topic == self.settings.user_unsubscribed_event_topic:
+            elif topic == self.user_unsubscribed_event_topic:
                 await self._handle_user_unsubscribed(message)
 
     async def start(self):

@@ -83,7 +83,7 @@ class OTPMessage(IMessage):
                             </p>
                             <p>Для завершения входа, перейдите по ссылке ниже:</p>
                             <p>
-                                <a href="https://it-kal.vercel.app/confirm/{self.otp}" class="button">
+                                <a href="{self.confirm_url}{self.otp}" class="button">
                                     Подтвердить вход
                                 </a>
                             </p>

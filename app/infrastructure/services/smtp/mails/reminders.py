@@ -82,13 +82,13 @@ class ReminderMessage(IMessage):
                                 пропущенных рекомендациях.
                             </p>
                             <p>Чтобы просмотреть все рекомендации, перейдите по ссылке ниже:</p>
-                            <p><a href="https://it-kal.vercel.app" class="button">Просмотреть рекомендации</a></p>
+                            <p><a href="{self.main_page_url}" class="button">Просмотреть рекомендации</a></p>
                         </div>
                         <div class="footer">
                             <p>С уважением, команда it-call. Время отправки письма: {current_datetime}</p>
                             <p>© {datetime.now().year} it-call. Все права защищены.</p>
                             <p>
-                                <a href="https://it-kal.vercel.app/unsubscribe/{self.user.oid}">
+                                <a href="{self.unsubscribe_url}{self.user.oid}">
                                     Отписаться от рассылки
                                 </a>
                             </p>

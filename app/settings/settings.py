@@ -21,8 +21,10 @@ class Settings(BaseSettings):
     user_subscribed_event_topic: str = Field(default="user_subscribed_topic")
     user_unsubscribed_event_topic: str = Field(default="user_unsubscribed_topic")
 
-    CONFIRM_URL: str = Field(default="http://0.0.0.0:8000/auth/confirm/")
-    MAIN_PAGE_URL: str = Field(default="http://0.0.0.0:8000/docs")
+    CONFIRM_URL: str
+    UNSUBSCRIBE_URL: str
+    MAIN_PAGE_URL: str
+
     SEND_TIME: str = Field(default="12:00")
 
     SENDER_MAIL: str
