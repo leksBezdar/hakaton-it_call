@@ -24,6 +24,7 @@ class SCreateUserIn(BaseModel):
 
 
 class SCreateUserOut(BaseModel):
+    oid: str
     email: EmailStr
     username: str
     created_at: datetime
@@ -32,6 +33,7 @@ class SCreateUserOut(BaseModel):
     @classmethod
     def from_entity(cls, user: UserEntity) -> "SCreateUserOut":
         return cls(
+            oid=user.oid,
             email=user.email.as_generic_type(),
             username=user.username.as_generic_type(),
             created_at=user.created_at,
